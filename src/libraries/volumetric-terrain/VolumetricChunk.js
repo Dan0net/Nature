@@ -225,16 +225,22 @@ export default class VolumetricChunk {
 
 		if ( this.terrain.updating !== false ) return;
 
-		center = center
+		const localCenter = center.clone()
 			.sub( this.mesh.position )
 			.divide( this.terrain.terrainScale )
 			// .round();
 
-		this.adjustGrid( center, radius, value, checkNeighbors, useTemporaryGrid );
+		if ( useTemporaryGrid ) {
+			this.useTemporaryGrid = useTemporaryGrid;
+			this.gridTemp = new Float32Array( this.grid );
+		}
 
+		this.adjustGrid( localCenter, radius, value );
+
+		if ( checkNeighbors ) this.adjustNeighbors( center, localCenter, radius, value );
 	}
 
-	async adjustGrid( center, radius, val, checkNeighbors = false, useTemporaryGrid ) {
+	async adjustGrid( center, radius, val ) {
 
 		//square loop around a sphere brush
 		let loopRadius = radius;
@@ -242,22 +248,11 @@ export default class VolumetricChunk {
 		let p, gridPosition = new THREE.Vector3();
 		const centerRounded = center.clone().round()
 
-		if ( useTemporaryGrid ) {
-			this.useTemporaryGrid = useTemporaryGrid;
-			this.gridTemp = new Float32Array( this.grid );
-		}
-
 		for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
 
 			for ( let z = - loopRadius; z <= loopRadius; z ++ ) {
 
 				for ( let x = - loopRadius; x <= loopRadius; x ++ ) {
-
-					// let distance = this.#sphereDistance(point.clone(), new THREE.Vector3(Math.round(point.x + x), Math.round(point.y + y), Math.round(point.z + z)), brushSize);
-                    // #sphereDistance = (spherePos, point, radius) => {
-					// 	return spherePos.distanceTo(point) - radius;
-					// }
-
 					//if within radius, add value to grid
 					// let d = x * x + y * y + z * z;
 
@@ -286,12 +281,6 @@ export default class VolumetricChunk {
 
 		//put this chunk in the list of chunk that need updates
 		this.needsUpdate = true;
-
-		// if the player clicks near a chunk edge, make sure to
-		// check the neighbors for terrain adjusting
-		if ( checkNeighbors ) this.adjustNeighbors( center, radius, val );
-
-
 	}
 
 
@@ -316,79 +305,27 @@ export default class VolumetricChunk {
 	//                             "Y88888P'
 
 
-	adjustNeighbors( center, radius, val ) {
+	adjustNeighbors( center, localCenter, radius, val ) {
 
-		//x-axis
-		if ( center.x <= radius ) {
+		const extraMargin = 2;
 
-			let nChunk = this.terrain.getChunkKey( { x: this.offset.x - 1, z: this.offset.z } );
-			let nCenter = center.clone();
-			nCenter.x += this.terrain.gridSize.x - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
+		for (var i = -1; i <=1; i++){
+			for (var j = -1; j <=1; j++){
+				if (i ===0 && j === 0) continue;
 
-		} else if ( this.terrain.gridSize.x - center.x <= radius ) {
-
-			let nChunk = this.terrain.getChunkKey( { x: this.offset.x + 1, z: this.offset.z } );
-			let nCenter = center.clone();
-			nCenter.x = nCenter.x - this.terrain.gridSize.x + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
-
-		}
-
-		//z-axis
-		if ( center.z <= radius ) {
-
-			let nChunk = this.terrain.getChunkKey( { x: this.offset.x, z: this.offset.z - 1 } );
-			let nCenter = center.clone();
-			nCenter.z += this.terrain.gridSize.z - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
-
-
-		} else if ( this.terrain.gridSize.z - center.z <= radius ) {
-
-			let nChunk = this.terrain.getChunkKey( { x: this.offset.x, z: this.offset.z + 1 } );
-			let nCenter = center.clone();
-			nCenter.z = nCenter.z - this.terrain.gridSize.z + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
-
-		}
-
-		//diagonals
-		if ( center.x < radius && center.z <= radius ) {
-
-			let nChunk = this.terrain.getChunkKey( { x: this.offset.x - 1, z: this.offset.z - 1 } );
-			let nCenter = center.clone();
-			nCenter.x += this.terrain.gridSize.x - CHUNK_OVERLAP;
-			nCenter.z += this.terrain.gridSize.z - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
-
-		}
-		if ( this.terrain.gridSize.x - center.x < radius && this.terrain.gridSize.z - center.z <= radius ) {
-
-			let nChunk = this.terrain.getChunkKey( { x: this.offset.x + 1, z: this.offset.z + 1 } );
-			let nCenter = center.clone();
-			nCenter.x = nCenter.x - this.terrain.gridSize.x + CHUNK_OVERLAP;
-			nCenter.z = nCenter.z - this.terrain.gridSize.z + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
-
-		}
-		if ( center.x < radius && this.terrain.gridSize.x - center.z <= radius ) {
-
-			let nChunk = this.terrain.getChunkKey( { x: this.offset.x - 1, z: this.offset.z + 1 } );
-			let nCenter = center.clone();
-			nCenter.x += this.terrain.gridSize.x - CHUNK_OVERLAP;
-			nCenter.z = nCenter.z - this.terrain.gridSize.z + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
-
-		}
-		if ( this.terrain.gridSize.x - center.x < radius && center.z <= radius ) {
-
-			let nChunk = this.terrain.getChunkKey( { x: this.offset.x + 1, z: this.offset.z - 1 } );
-			let nCenter = center.clone();
-			nCenter.x = nCenter.x - this.terrain.gridSize.x + CHUNK_OVERLAP;
-			nCenter.z += this.terrain.gridSize.z - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
-
+				if (
+					( ( i > 0 ? this.terrain.gridSize.x : 0 ) + ( localCenter.x * -i ) - radius - extraMargin <= 0 ) &&
+					( ( j > 0 ? this.terrain.gridSize.z : 0 ) + ( localCenter.z * -j ) - radius - extraMargin <= 0 )
+				 ) {
+					let nChunk = this.terrain.getChunkKey( { x: this.offset.x + i, z: this.offset.z + j } );
+					
+					const chunk = this.terrain.chunks[ nChunk ];
+					console.log(i,j,nChunk, chunk)
+					if ( true ) {
+						chunk.adjust( center, radius, val, false, this.useTemporaryGrid );
+					}
+				}
+			}
 		}
 
 	}
