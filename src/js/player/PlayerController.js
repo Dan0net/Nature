@@ -65,8 +65,8 @@ export default class Player extends THREE.Object3D {
 		this.grounded = true;
 
 		//flymode selector
-		this.flyMode = false;
-		this.godMode = false;
+		this.flyMode = true;
+		this.godMode = true;
 
 	}
 

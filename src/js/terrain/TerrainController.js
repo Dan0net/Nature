@@ -46,13 +46,13 @@ export default class TerrainController extends VolumetricTerrain {
 		this.upperBoulderHeightLimit = this.gridSize.y * 0.55;
 
 		this.instancedObjects = {
-			"Grass": new Grass( this, this.grassViewDistance ),
-			"Tree": new Trees( this, this.treeViewDistance ),
-			"Fern": new Fern( this, this.fernViewDistance ),
-			"BerryBush": new BerryBush( this, this.berryViewDistance ),
-			"Fog": new Fog( this, this.fogViewDistance ),
-			"Boulder": new Boulder( this, this.instancedObjectViewDistance ),
-			"Pedestal": new Pedestal( this, this.instancedObjectViewDistance )
+			// "Grass": new Grass( this, this.grassViewDistance ),
+			// "Tree": new Trees( this, this.treeViewDistance ),
+			// "Fern": new Fern( this, this.fernViewDistance ),
+			// "BerryBush": new BerryBush( this, this.berryViewDistance ),
+			// "Fog": new Fog( this, this.fogViewDistance ),
+			// "Boulder": new Boulder( this, this.instancedObjectViewDistance ),
+			// "Pedestal": new Pedestal( this, this.instancedObjectViewDistance )
 		};
 
 		this.init()
@@ -292,9 +292,9 @@ export default class TerrainController extends VolumetricTerrain {
 			this.updateInstancedObjects( true );
 
 			const chunkKey = this.getChunkKey( this.currentCoord );
-			const treeAmount = ( this.instancedObjects.Tree.cachedData[ chunkKey ]?.tree.length || 0 );
-			const birdVolume = map( treeAmount, 3, 15, 0.0, 0.3, true );
-			document.querySelector( 'audio' ).setVolume( birdVolume, 2.5 );
+			// const treeAmount = ( this.instancedObjects.Tree.cachedData[ chunkKey ]?.tree.length || 0 );
+			// const birdVolume = map( treeAmount, 3, 15, 0.0, 0.3, true );
+			// document.querySelector( 'audio' ).setVolume( birdVolume, 2.5 );
 
 		}
 

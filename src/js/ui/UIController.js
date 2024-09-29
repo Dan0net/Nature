@@ -330,14 +330,14 @@ export default class UIController {
 
 	setFullscreen( e ) {
 
-		document.body.requestFullscreen();
+		// document.body.requestFullscreen();
 		setTimeout( ()=>this.lockPointer( e ), 400 );
 
 	}
 
 	exitFullscreen() {
 
-		document.exitFullscreen();
+		// document.exitFullscreen();
 
 	}
 
