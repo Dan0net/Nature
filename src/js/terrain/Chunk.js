@@ -18,7 +18,7 @@ export default class Chunk extends VolumetricChunk {
 	flipMesh() {
 
 		super.flipMesh();
-		this.sampler = new MeshSurfaceSampler( this.mesh ).build();
+		// this.sampler = new MeshSurfaceSampler( this.mesh ).build();
 		this.showLevel();
 
 	}
@@ -100,8 +100,6 @@ export default class Chunk extends VolumetricChunk {
 		this.meshBuffer.LODMesh.updateWorldMatrix();
 		this.meshBuffer.LODMesh.matrixAutoUpdate = false;
 		this.meshBuffer.LODMesh.name = "terrainTop";
-		this.meshBuffer.raycast = !this.useTemporaryGrid;
-
 	}
 
 	showLevel( level ) {
@@ -111,11 +109,17 @@ export default class Chunk extends VolumetricChunk {
 		if ( this.lodLevel == 1 ) {
 
 			if ( this.mesh ) this.terrain.add( this.mesh );
+			if ( this.meshTemp ) {
+				this.terrain.add( this.meshTemp );
+				this.mesh.visible = false;
+			}
+
 			if ( this.LODMesh ) this.terrain.remove( this.LODMesh );
 
 		} else {
 
 			if ( this.mesh ) this.terrain.remove( this.mesh );
+			if ( this.meshTemp ) this.terrain.remove( this.meshTemp );
 			if ( this.LODMesh ) this.terrain.add( this.LODMesh );
 
 		}

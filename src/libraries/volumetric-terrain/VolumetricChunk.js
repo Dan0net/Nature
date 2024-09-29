@@ -53,11 +53,15 @@ export default class VolumetricChunk {
 		if ( this.meshBuffer.mesh ) {
 
 			this.dispose();
-			this.mesh = this.meshBuffer.mesh;
+			if ( this.useTemporaryGrid ) {
+				this.meshTemp = this.meshBuffer.mesh;
+				this.terrain.add( this.meshTemp );
+			} else {
+				this.mesh = this.meshBuffer.mesh;
+				this.terrain.add( this.mesh );
+			}
 			this.LODMesh = this.meshBuffer.LODMesh;
 			this.meshBuffer = {};
-			this.terrain.add( this.mesh );
-
 		}
 
 	}
@@ -440,6 +444,14 @@ export default class VolumetricChunk {
 			this.mesh.geometry.dispose();
 			this.terrain.remove( this.mesh );
 			this.mesh = undefined;
+
+		}
+
+		if ( this.meshTemp ) {
+
+			this.meshTemp.geometry.dispose();
+			this.terrain.remove( this.meshTemp );
+			this.meshTemp = undefined;
 
 		}
 
