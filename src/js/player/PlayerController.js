@@ -49,10 +49,12 @@ export default class Player extends THREE.Object3D {
 
 		//brush vars
 		this.terrainAdjustStrength = 2;
-		this.brushRadius = 4;
+		this.brushRadius = 3;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.05;
 		this.maxBuildDistance = 450;
+		this.buildRotation = 0;
+		this.buildPlaceTrigger = true;
 
 
 		//player height/movement vars
@@ -620,6 +622,9 @@ export default class Player extends THREE.Object3D {
 		if ( ! app.running ) return;
 
 		this.cameraMaxDistance += Math.sign( e.deltaY ) * 0.5;
+
+		this.buildRotation = (this.buildRotation + (e.deltaY > 0 ? Math.PI / 8 : -Math.PI / 8)) % (Math.PI * 2);
+
 		if ( this.cameraMaxDistance < 0.01 ) this.cameraMaxDistance = 0.01;
 		if ( this.cameraMaxDistance > this.cameraOriginalDistance * 2 ) this.cameraMaxDistance = this.cameraOriginalDistance * 2;
 		this.updateCameraCollision();
@@ -653,6 +658,9 @@ export default class Player extends THREE.Object3D {
 
 	adjustTerrain( delta, mouseIsPressed ) {
 
+		const isPlacing = this.buildPlaceTrigger && mouseIsPressed;
+		this.buildPlaceTrigger = !mouseIsPressed;
+
 		// this.buildTimer > this.maxBuildTime &&
 		if ( app.terrainController.updating == false && this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
 
@@ -663,8 +671,12 @@ export default class Player extends THREE.Object3D {
 			// let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength * delta : this.terrainAdjustStrength * delta;
 			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength ;
 
+			if ( val < 0 ) {
+				this.intersectPoint.point.add(new THREE.Vector3(0, this.brushRadius, 0))
+			}
+
 			//tell chunk to change the terrain
-			this.intersectPoint.object.chunk.adjust( this.intersectPoint.point, this.brushRadius, val, true, !mouseIsPressed );
+			this.intersectPoint.object.chunk.adjust( this.intersectPoint.point, this.brushRadius, val, this.buildRotation, true, !isPlacing );
 			app.terrainController.updateInstancedObjects();
 
 		}

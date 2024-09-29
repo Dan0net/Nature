@@ -183,9 +183,9 @@ export default class Chunk extends VolumetricChunk {
 	}
 
 
-	adjust( center, radius, val, checkNeighbors, useTemporaryGrid ) {
+	adjust( center, radius, val, rot, checkNeighbors, useTemporaryGrid ) {
 
-		super.adjust( center, radius, val, checkNeighbors, useTemporaryGrid );
+		super.adjust( center, radius, val, rot, checkNeighbors, useTemporaryGrid );
 		this.terrain.adjustInstancedObjects( this.chunkKey, center, radius );
 
 	}

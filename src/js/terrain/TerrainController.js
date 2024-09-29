@@ -21,7 +21,7 @@ export default class TerrainController extends VolumetricTerrain {
 			terrainScale: { x: 1, y: 1, z: 1 },
 			currentCoord: offset,
 			viewDistance: viewDistance.viewHigh + viewDistance.viewLow,
-			fps: 60,
+			fps: 24,
 			material: terrainMaterial,
 			workers: 4,
 			gridWorkerScript: './resources/js/gridworker/GridWorker.js',
