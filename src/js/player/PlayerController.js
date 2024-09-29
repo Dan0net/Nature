@@ -1,6 +1,8 @@
 import { modelBank } from '../modelloader/ModelLoader';
 import * as THREE from 'three';
 
+const _PI_2 = Math.PI * 2;
+
 export default class Player extends THREE.Object3D {
 
 	constructor() {
@@ -28,7 +30,7 @@ export default class Player extends THREE.Object3D {
 		this.cameraOriginalDistance = this.camera.position.length();
 		this.cameraMaxDistance = this.camera.position.length();
 		this.cameraDistance = this.cameraMaxDistance;
-
+		this.cameraEuler = new THREE.Euler(0, 0, 0, 'XYZ')
 
 		this.cameraRig.add( this.camera );
 		this.add( this.cameraRig );
@@ -588,15 +590,24 @@ export default class Player extends THREE.Object3D {
 
 		if ( ! app.running ) return;
 
-		//rotate object on Y
-		this.cameraRig.rotateY( e.movementX * - this.mouseSensitivity );
+		this.cameraEuler.setFromQuaternion( this.cameraRig.quaternion );
 
-		//rotate cameraRig on X
-		this.cameraRig.rotateX( e.movementY * - this.mouseSensitivity );
+		this.cameraEuler.y -= e.movementX * this.mouseSensitivity;
+		this.cameraEuler.x -= e.movementY * this.mouseSensitivity;
 
-		this.cameraRig.rotation.x = Math.min( this.cameraRig.rotation.x, 1.35 );
-		this.cameraRig.rotation.x = Math.max( this.cameraRig.rotation.x, - 1.1 );
-		this.cameraRig.rotation.z = 0;
+		this.cameraEuler.x = Math.max( _PI_2 - this.maxCameraPolarAngle, Math.min( _PI_2 - this.minCameraPolarAngle, this.cameraEuler.x ) );
+
+		this.cameraRig.quaternion.setFromEuler( this.cameraEuler );
+
+		// //rotate object on Y
+		// this.cameraRig.rotateY( e.movementX * - this.mouseSensitivity );
+
+		// //rotate cameraRig on X
+		// this.cameraRig.rotateX( e.movementY * - this.mouseSensitivity );
+
+		// this.cameraRig.rotation.x = Math.min( this.cameraRig.rotation.x, 1.35 );
+		// this.cameraRig.rotation.x = Math.max( this.cameraRig.rotation.x, - 1.1 );
+		// this.cameraRig.rotation.z = 0;
 
 		this.updateCameraCollision();
 
