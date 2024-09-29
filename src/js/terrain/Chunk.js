@@ -19,7 +19,7 @@ export default class Chunk extends VolumetricChunk {
 
 		super.flipMesh();
 		// this.sampler = new MeshSurfaceSampler( this.mesh ).build();
-		this.showLevel();
+		// this.showLevel();
 
 	}
 
@@ -109,11 +109,7 @@ export default class Chunk extends VolumetricChunk {
 		if ( this.lodLevel == 1 ) {
 
 			if ( this.mesh ) this.terrain.add( this.mesh );
-			if ( this.meshTemp ) {
-				this.terrain.add( this.meshTemp );
-				this.mesh.visible = false;
-			}
-
+			if ( this.meshTemp ) this.terrain.add( this.meshTemp );
 			if ( this.LODMesh ) this.terrain.remove( this.LODMesh );
 
 		} else {
