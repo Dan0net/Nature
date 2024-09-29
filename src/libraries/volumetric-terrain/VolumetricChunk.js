@@ -53,10 +53,11 @@ export default class VolumetricChunk {
 		if ( this.meshBuffer.mesh ) {
 
 			this.dispose();
-			
-			if (this.temp) {
+
+			if ( this.useTemporaryGrid ) {
 				this.meshTemp = this.meshBuffer.mesh
 				this.terrain.add( this.meshTemp );
+				this.meshTemp.raycastEnabled = false;
 			} else {
 				this.mesh = this.meshBuffer.mesh
 			}
@@ -194,8 +195,6 @@ export default class VolumetricChunk {
 
 		this.meshBuffer.mesh.updateWorldMatrix();
 		this.meshBuffer.mesh.matrixAutoUpdate = false;
-		this.meshBuffer.mesh.name = "terrain";
-		this.meshBuffer.terrain.add( this.mesh );
 
 	}
 
