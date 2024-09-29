@@ -1,7 +1,7 @@
 import { modelBank } from '../modelloader/ModelLoader';
 import * as THREE from 'three';
 
-const _PI_2 = Math.PI * 2;
+const _PI_2 = Math.PI / 2;
 
 export default class Player extends THREE.Object3D {
 
