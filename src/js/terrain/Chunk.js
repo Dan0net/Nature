@@ -30,7 +30,7 @@ export default class Chunk extends VolumetricChunk {
 
 			this.terrain.meshWorkerBank.work(
 				{
-					grid: this.grid,
+					grid: this.useTemporaryGrid ? this.gridTemp : this.grid,
 					gridSize: this.terrain.gridSize,
 					terrainHeights: this.terrainHeights,
 					adjustedIndices: this.adjustedIndices
@@ -100,6 +100,7 @@ export default class Chunk extends VolumetricChunk {
 		this.meshBuffer.LODMesh.updateWorldMatrix();
 		this.meshBuffer.LODMesh.matrixAutoUpdate = false;
 		this.meshBuffer.LODMesh.name = "terrainTop";
+		this.meshBuffer.raycast = !this.useTemporaryGrid;
 
 	}
 
@@ -182,9 +183,9 @@ export default class Chunk extends VolumetricChunk {
 	}
 
 
-	async adjust( center, radius, val, checkNeighbors ) {
+	async adjust( center, radius, val, checkNeighbors, useTemporaryGrid ) {
 
-		super.adjust( center, radius, val, checkNeighbors );
+		super.adjust( center, radius, val, checkNeighbors, useTemporaryGrid );
 		this.terrain.adjustInstancedObjects( this.chunkKey, center, radius );
 
 	}

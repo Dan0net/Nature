@@ -23,6 +23,8 @@ export default class VolumetricChunk {
 		);
 
 		this.grid;
+		this.gridTemp;
+		this.useTemporaryGrid = false;
 		this.terrainHeights;
 		this.meshBuffer = {};
 
@@ -107,6 +109,7 @@ export default class VolumetricChunk {
 				async ( { data } ) => {
 
 					this.grid = data.grid;
+					this.gridTemp = new Float32Array( data.grid );
 					this.terrainHeights = data.terrainHeights;
 
 					resolve();
@@ -142,7 +145,7 @@ export default class VolumetricChunk {
 
 			this.terrain.meshWorkerBank.work(
 				{
-					grid: this.grid,
+					grid: this.useTemporaryGrid ? this.gridTemp : this.grid,
 					gridSize: this.terrain.gridSize,
 					terrainHeights: this.terrainHeights
 				},
@@ -213,7 +216,7 @@ export default class VolumetricChunk {
 	// "Y88888P'
 
 
-	adjust( center, radius, value ) {
+	adjust( center, radius, value, checkNeighbors, useTemporaryGrid ) {
 
 		if ( this.terrain.updating !== false ) return;
 
@@ -222,7 +225,9 @@ export default class VolumetricChunk {
 			.divide( this.terrain.terrainScale )
 			.round();
 
-		this.adjustGrid( center, radius, value, true );
+		this.useTemporaryGrid = useTemporaryGrid;
+
+		this.adjustGrid( center, radius, value, checkNeighbors );
 
 	}
 
@@ -232,6 +237,10 @@ export default class VolumetricChunk {
 		let loopRadius = radius;
 
 		let p, gridPosition = new THREE.Vector3();
+
+		if ( this.useTemporaryGrid ) {
+			this.gridTemp = new Float32Array( this.grid );
+		}
 
 		for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
 
@@ -251,8 +260,6 @@ export default class VolumetricChunk {
 							//if not lower that 0 or height that this.terrain.gridSize, add value
 							p = map( d, 0, radius * 0.75, 1, 0, true );
 							this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p );
-							this.saveGridPosition( gridPosition );
-
 						}
 
 					}
@@ -272,9 +279,6 @@ export default class VolumetricChunk {
 
 
 	}
-
-	saveGridPosition() {}
-
 
 
 	//                 .o8      o8o                          .
@@ -406,6 +410,9 @@ export default class VolumetricChunk {
 
 		let gridOffset = this.gridIndex( x, y, z );
 		const oldValueScale = map( abs( this.grid[ gridOffset ] ), 0, 0.5, 0.001, 3 );
+		if ( this.useTemporaryGrid ) {
+			return this.gridTemp[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
+		}
 		return this.grid[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
 
 	}
