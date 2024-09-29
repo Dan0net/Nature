@@ -57,7 +57,7 @@ export default class VolumetricChunk {
 			if ( this.useTemporaryGrid ) {
 				this.meshTemp = this.meshBuffer.mesh
 				this.terrain.add( this.meshTemp );
-				this.meshTemp.raycastEnabled = false;
+				this.mesh.visible = false;
 			} else {
 				this.mesh = this.meshBuffer.mesh
 			}
@@ -228,22 +228,22 @@ export default class VolumetricChunk {
 		center = center
 			.sub( this.mesh.position )
 			.divide( this.terrain.terrainScale )
-			.round();
+			// .round();
 
-		this.useTemporaryGrid = useTemporaryGrid;
-
-		this.adjustGrid( center, radius, value, checkNeighbors );
+		this.adjustGrid( center, radius, value, checkNeighbors, useTemporaryGrid );
 
 	}
 
-	async adjustGrid( center, radius, val, checkNeighbors = false ) {
+	async adjustGrid( center, radius, val, checkNeighbors = false, useTemporaryGrid ) {
 
 		//square loop around a sphere brush
 		let loopRadius = radius;
 
 		let p, gridPosition = new THREE.Vector3();
+		const centerRounded = center.clone().round()
 
-		if ( this.useTemporaryGrid ) {
+		if ( useTemporaryGrid ) {
+			this.useTemporaryGrid = useTemporaryGrid;
 			this.gridTemp = new Float32Array( this.grid );
 		}
 
@@ -253,12 +253,21 @@ export default class VolumetricChunk {
 
 				for ( let x = - loopRadius; x <= loopRadius; x ++ ) {
 
+					// let distance = this.#sphereDistance(point.clone(), new THREE.Vector3(Math.round(point.x + x), Math.round(point.y + y), Math.round(point.z + z)), brushSize);
+                    // #sphereDistance = (spherePos, point, radius) => {
+					// 	return spherePos.distanceTo(point) - radius;
+					// }
+
 					//if within radius, add value to grid
-					let d = x * x + y * y + z * z;
+					// let d = x * x + y * y + z * z;
+
+					let p0 = new THREE.Vector3(Math.round(center.x + x), Math.round(center.y + y), Math.round(center.z + z));
+					let d = center.distanceTo(p0);
+
 					if ( d < radius ) {
 
 						//grid position in sphere around center (x y and z go from -looprad to +looprad)
-						gridPosition.set( x, y, z ).add( center );
+						gridPosition.set( x, y, z ).add( centerRounded );
 
 						if ( this.isInsideGrid( gridPosition ) ) {
 
@@ -315,14 +324,14 @@ export default class VolumetricChunk {
 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x - 1, z: this.offset.z } );
 			let nCenter = center.clone();
 			nCenter.x += this.terrain.gridSize.x - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
 
 		} else if ( this.terrain.gridSize.x - center.x <= radius ) {
 
 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x + 1, z: this.offset.z } );
 			let nCenter = center.clone();
 			nCenter.x = nCenter.x - this.terrain.gridSize.x + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
 
 		}
 
@@ -332,7 +341,7 @@ export default class VolumetricChunk {
 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x, z: this.offset.z - 1 } );
 			let nCenter = center.clone();
 			nCenter.z += this.terrain.gridSize.z - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
 
 
 		} else if ( this.terrain.gridSize.z - center.z <= radius ) {
@@ -340,7 +349,7 @@ export default class VolumetricChunk {
 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x, z: this.offset.z + 1 } );
 			let nCenter = center.clone();
 			nCenter.z = nCenter.z - this.terrain.gridSize.z + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
 
 		}
 
@@ -351,7 +360,7 @@ export default class VolumetricChunk {
 			let nCenter = center.clone();
 			nCenter.x += this.terrain.gridSize.x - CHUNK_OVERLAP;
 			nCenter.z += this.terrain.gridSize.z - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
 
 		}
 		if ( this.terrain.gridSize.x - center.x < radius && this.terrain.gridSize.z - center.z <= radius ) {
@@ -360,7 +369,7 @@ export default class VolumetricChunk {
 			let nCenter = center.clone();
 			nCenter.x = nCenter.x - this.terrain.gridSize.x + CHUNK_OVERLAP;
 			nCenter.z = nCenter.z - this.terrain.gridSize.z + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
 
 		}
 		if ( center.x < radius && this.terrain.gridSize.x - center.z <= radius ) {
@@ -369,7 +378,7 @@ export default class VolumetricChunk {
 			let nCenter = center.clone();
 			nCenter.x += this.terrain.gridSize.x - CHUNK_OVERLAP;
 			nCenter.z = nCenter.z - this.terrain.gridSize.z + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
 
 		}
 		if ( this.terrain.gridSize.x - center.x < radius && center.z <= radius ) {
@@ -378,7 +387,7 @@ export default class VolumetricChunk {
 			let nCenter = center.clone();
 			nCenter.x = nCenter.x - this.terrain.gridSize.x + CHUNK_OVERLAP;
 			nCenter.z += this.terrain.gridSize.z - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val, false, this.useTemporaryGrid );
 
 		}
 
@@ -444,7 +453,7 @@ export default class VolumetricChunk {
 
 			this.mesh.geometry.dispose();
 			this.terrain.remove( this.mesh );
-			this.mesh = undefined;
+			// this.mesh = undefined;
 
 		}
 
