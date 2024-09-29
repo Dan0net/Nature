@@ -30,7 +30,7 @@ export default class Player extends THREE.Object3D {
 		this.cameraOriginalDistance = this.camera.position.length();
 		this.cameraMaxDistance = this.camera.position.length();
 		this.cameraDistance = this.cameraMaxDistance;
-		this.cameraEuler = new THREE.Euler(0, 0, 0, 'XYZ');
+		this.cameraEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 		this.maxCameraPolarAngle = Math.PI;
 		this.minCameraPolarAngle = 0;
 
