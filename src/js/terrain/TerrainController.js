@@ -18,7 +18,7 @@ export default class TerrainController extends VolumetricTerrain {
 
 		super( {
 			gridSize: { x: 16, y: 256, z: 16 },
-			terrainScale: { x: 1, y: 1, z: 1 },
+			terrainScale: { x: .5, y: .5, z: .5 },
 			currentCoord: offset,
 			viewDistance: viewDistance.viewHigh + viewDistance.viewLow,
 			fps: 24,
