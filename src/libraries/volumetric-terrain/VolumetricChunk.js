@@ -111,7 +111,8 @@ export default class VolumetricChunk {
 			this.terrain.gridWorkerBank.work(
 				{
 					offset: this.offset,
-					gridSize: this.terrain.gridSize
+					gridSize: this.terrain.gridSize,
+					terrainScale: this.terrain.terrainScale
 				},
 				async ( { data } ) => {
 
@@ -147,6 +148,7 @@ export default class VolumetricChunk {
 	// o888o o888o o888o `Y8bod8P' 8""888P' o888o o888o
 
 	generateMeshData() {
+		console.log(this.terrain.terrainScale)
 
 		return new Promise( resolve =>{
 
@@ -243,10 +245,11 @@ export default class VolumetricChunk {
 	async adjustGrid( center, radius, val, rot ) {
 
 		//square loop around a sphere brush
-		let loopRadius = radius;
+		let loopRadius = radius + 1;
 
 		let p, gridPosition = new THREE.Vector3();
 		const centerRounded = center.clone().round()
+		console.log(center)
 
 		for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
 
@@ -262,6 +265,9 @@ export default class VolumetricChunk {
 						let p = this.drawCube( center, radius, pos.x, pos.y, pos.z );
 						// console.log(p);
 						this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p );
+						// if (p < 0) {
+						this.saveGridPosition( gridPosition );
+						// }
 					}
 
 				}
@@ -287,8 +293,8 @@ export default class VolumetricChunk {
 			Math.abs(Math.round(center.y + y) - center.y), 
 			Math.abs(Math.round(center.z + z) - center.z)
 		);
-		// p0 = new THREE.Vector3(Math.abs(x),Math.abs(y),Math.abs(z))
-		// const q = p0.sub(new THREE.Vector3(radius, radius, 1.5))
+
+
 		const q = p0.sub(new THREE.Vector3(radius, radius, radius))
 		const outsideD = q.clone().max(new THREE.Vector3(0,0,0)).length();
 		const insideD = Math.min( Math.max(q.x,q.y,q.z), 0.0);
@@ -332,16 +338,19 @@ export default class VolumetricChunk {
 			for (var j = -1; j <=1; j++){
 				if (i ===0 && j === 0) continue;
 
+				let nChunk = this.terrain.getChunkKey( { x: this.offset.x + i, z: this.offset.z + j } );
+				const chunk = this.terrain.chunks[ nChunk ];
+
 				if (
 					( ( i > 0 ? this.terrain.gridSize.x : 0 ) + ( localCenter.x * -i ) - radius - extraMargin <= 0 ) &&
 					( ( j > 0 ? this.terrain.gridSize.z : 0 ) + ( localCenter.z * -j ) - radius - extraMargin <= 0 )
 				 ) {
-					let nChunk = this.terrain.getChunkKey( { x: this.offset.x + i, z: this.offset.z + j } );
-					
-					const chunk = this.terrain.chunks[ nChunk ];
 					if ( true ) {
 						chunk.adjust( center, radius, val, rot, false, this.useTemporaryGrid );
 					}
+				} else if ( chunk.useTemporaryGrid ) {
+					chunk.useTemporaryGrid = false;
+					chunk.flipMesh();
 				}
 			}
 		}
@@ -386,6 +395,9 @@ export default class VolumetricChunk {
 		return g[ gridOffset ] = v;
 		return g[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
 
+	}
+
+	saveGridPosition( ) {
 	}
 
 	//convert 3d coordinate into 1D index.

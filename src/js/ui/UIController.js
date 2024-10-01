@@ -21,6 +21,7 @@ export default class UIController {
 			viewDetail: document.getElementById( 'view-detail' ),
 			viewDistance: document.getElementById( 'view-distance' ),
 			shadows: document.getElementById( 'shadows' ),
+			mode: document.getElementById( 'mode' ),
 			mouseSensitivity: document.getElementById( 'mouse_sensitivity' ),
 			saveProgress: document.getElementById( 'save_progress' ),
 			backButton: document.getElementById( 'back-button' ),
@@ -146,6 +147,24 @@ export default class UIController {
 	}
 
 	loadSettings() {
+
+		const mode = this.elements.mode.querySelector( 'input:checked' ).value;
+		switch ( mode ) {
+
+			case 'normal':
+				app.player.flyMode = false;
+				app.player.godMode = false;
+				break;
+			case 'fly':
+				app.player.flyMode = true;
+				app.player.godMode = false;
+				break;
+			case 'god':
+				app.player.flyMode = false;
+				app.player.godMode = true;
+				break;
+
+		}
 
 
 		const shadows = this.elements.shadows.querySelector( 'input:checked' ).value;

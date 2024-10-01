@@ -76,13 +76,25 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
             vec4 getTriPlanarTexture(){
                                     
                 //mesh scaled
-                float rockRepeat = 0.025;
+                float rockRepeat = 0.1;
                 float grassRepeat = 0.1;
-                float dirtRepeat = 0.025;
+                float dirtRepeat = 0.1;
 
                 vec3 blending = getTriPlanarBlend( vNormal2 );
-                vec3 xaxis = texture2D( tDiff[0], mod(vPos.yz * rockRepeat, 1.0) ).rgb;
-                vec3 zaxis = texture2D( tDiff[0], mod(vPos.xy * rockRepeat, 1.0) ).rgb;
+                
+                vec3 xaxis = mix(
+                        
+                        texture2D( tDiff[0], mod(vPos.yz * rockRepeat, 1.0) ).rgb,
+                        texture2D( tDiff[2], mod(vPos.yz * dirtRepeat, 1.0) ).rgb,
+                        vAdjusted
+                    );
+
+                vec3 zaxis = mix(
+                        
+                        texture2D( tDiff[0], mod(vPos.xy * rockRepeat, 1.0) ).rgb,
+                        texture2D( tDiff[2], mod(vPos.xy * dirtRepeat, 1.0) ).rgb,
+                        vAdjusted
+                    );
                 
                 vec3 yaxis;
                 if ( vNormal2.y < 0.2){

@@ -12,6 +12,7 @@ export default class Chunk extends VolumetricChunk {
 		this.sampler;
 		this.adjustedBuffer = [];
 		this.adjustedIndices = new Int8Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
+		this.adjustedIndicesTemp = new Int8Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
 
 	}
 
@@ -33,7 +34,7 @@ export default class Chunk extends VolumetricChunk {
 					grid: this.useTemporaryGrid ? this.gridTemp : this.grid,
 					gridSize: this.terrain.gridSize,
 					terrainHeights: this.terrainHeights,
-					adjustedIndices: this.adjustedIndices
+					adjustedIndices: this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices
 				},
 				async ( { data } ) => {
 
@@ -129,7 +130,8 @@ export default class Chunk extends VolumetricChunk {
 			this.terrain.gridWorkerBank.work(
 				{
 					offset: this.offset,
-					gridSize: this.terrain.gridSize
+					gridSize: this.terrain.gridSize,
+					terrainScale: this.terrain.terrainScale
 				},
 				async ( { data } ) => {
 
@@ -175,17 +177,26 @@ export default class Chunk extends VolumetricChunk {
 	}
 
 	saveGridPosition( gridPosition ) {
+		const a = this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices;
 
 		const index = this.gridIndex( gridPosition.x, gridPosition.y, gridPosition.z );
-		this.adjustedIndices[ this.gridIndex( gridPosition.x, gridPosition.y, gridPosition.z ) ] = 1;
-		if ( this.terrain.DB ) this.adjustedBuffer.push( { index, value: this.grid[ index ] } );
+		a[ index ] = 1;
+
+		if ( !this.useTemporaryGrid) {
+			if ( this.terrain.DB ) this.adjustedBuffer.push( { index, value: this.grid[ index ] } );
+		}
 
 	}
 
 
 	adjust( center, radius, val, rot, checkNeighbors, useTemporaryGrid ) {
 
+		if ( useTemporaryGrid ) {
+			this.adjustedIndicesTemp = new Float32Array( this.adjustedIndices );
+		}
+
 		super.adjust( center, radius, val, rot, checkNeighbors, useTemporaryGrid );
+
 		this.terrain.adjustInstancedObjects( this.chunkKey, center, radius );
 
 	}

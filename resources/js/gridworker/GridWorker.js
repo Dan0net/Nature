@@ -109,7 +109,8 @@ self.onmessage = async ( { data } ) => {
 
 };
 
-function generateGrid( { gridSize, offset } ) {
+function generateGrid( { gridSize, terrainScale, offset } ) {
+
 
 	const grid = new Float32Array( gridSize.x * gridSize.y * gridSize.z ).fill( - 0.5 );
 	const terrainHeights = new Float32Array( gridSize.x * gridSize.z );
@@ -127,14 +128,14 @@ function generateGrid( { gridSize, offset } ) {
 
 			const continenal_scale = 0.0059;
 			const continental_noise = noise(
-				5999754664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * continenal_scale,
-				5999754664 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * continenal_scale,
+				5999754664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * continenal_scale * terrainScale.x,
+				5999754664 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * continenal_scale * terrainScale.z,
 			);
 
 			const bump_scale = 0.042;
 			const bump_noise = Math.abs( noise(
-				5999754664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * bump_scale,
-				5999754664 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * bump_scale,
+				5999754664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * bump_scale * terrainScale.x,
+				5999754664 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * bump_scale * terrainScale.z,
 			) * 2 - 1 );
 
 			//2d noise
@@ -150,7 +151,7 @@ function generateGrid( { gridSize, offset } ) {
 
 			for ( var y = 0; y < gridSize.y; y ++ ) {
 
-				const value = getValue( x, y, z, offset, gridSize, terrainHeight );
+				const value = getValue( x, y, z, offset, gridSize, terrainScale, terrainHeight );
 				setGridValue( x, y, z, value );
 
 			}
@@ -167,16 +168,16 @@ function generateGrid( { gridSize, offset } ) {
 
 
 
-function getValue( x, y, z, offset, gridSize, terrainHeight ) {
+function getValue( x, y, z, offset, gridSize, terrainScale, terrainHeight ) {
 
 	let terrainHeightValue = y < terrainHeight ? 0.2 : map( y - terrainHeight, 0, 2, 0.5, - 0.5, true );
 
 	//3d noise
 	const noise_3d_scale = 0.025;
 	const noise_3d = noise(
-		5999737664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * noise_3d_scale,
-		5903854664 + ( y * ( gridSize.y - 1 ) ) * ( noise_3d_scale * 0.01 ),
-		5999111164 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * noise_3d_scale,
+		5999737664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * noise_3d_scale * terrainScale.x,
+		5903854664 + ( y * ( gridSize.y - 1 ) ) * ( noise_3d_scale * 0.01 ) * terrainScale.y,
+		5999111164 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * noise_3d_scale * terrainScale.z,
 	);
 
 	const density_3d = noise_3d + mapSplineNoise( ( Math.abs( y - terrainHeight ) / ( gridSize.y * 0.5 ) ) + 0.001, noise_3d_spline );
@@ -188,18 +189,18 @@ function getValue( x, y, z, offset, gridSize, terrainHeight ) {
 		// caves
 		const scale = 0.03;
 		const d = noise(
-			5999737664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * scale,
-			5903854664 + ( y * ( gridSize.y - 1 ) ) * ( scale * 0.01 ),
-			5999111164 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * scale,
+			5999737664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * scale * terrainScale.x,
+			5903854664 + ( y * ( gridSize.y - 1 ) ) * ( scale * 0.01 ) * terrainScale.y,
+			5999111164 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * scale * terrainScale.z,
 		);
 		if ( d < 0.33 ) terrainHeightValue = map( d, 0, 0.33, 0.5, - 0.5, true );
 
 		//tunnels
 		const scale2 = 0.025;
 		let d2 = Math.abs( noise(
-			5999737664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * scale2,
-			5903854664 + ( y * ( gridSize.y - 1 ) ) * ( scale2 * 0.008 ),
-			5999111164 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * scale2,
+			5999737664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * scale2 * terrainScale.x,
+			5903854664 + ( y * ( gridSize.y - 1 ) ) * ( scale2 * 0.008 ) * terrainScale.y,
+			5999111164 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * scale2 * terrainScale.z,
 		) * 2 - 1 );
 		d2 = Math.pow( 1.0 - d2, 3 );
 		if ( d2 > 0.7 ) terrainHeightValue = map( d2, 0.7, 1, 0.5, - 0.5, true );
