@@ -126,7 +126,7 @@ class SurfaceNets{
               , g1 = grid[e1]
               , t  = g0 - g1;                 //Compute point of intersection
             if(Math.abs(t) > 1e-6) {
-              t = g0 / t;
+              t = g0 / (t);
             } else {
               continue;
             }

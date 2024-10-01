@@ -111,7 +111,6 @@ self.onmessage = async ( { data } ) => {
 
 function generateGrid( { gridSize, terrainScale, offset } ) {
 
-
 	const grid = new Float32Array( gridSize.x * gridSize.y * gridSize.z ).fill( - 0.5 );
 	const terrainHeights = new Float32Array( gridSize.x * gridSize.z );
 

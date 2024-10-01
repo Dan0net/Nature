@@ -245,7 +245,7 @@ export default class VolumetricChunk {
 	async adjustGrid( center, radius, val, rot ) {
 
 		//square loop around a sphere brush
-		let loopRadius = radius + 1;
+		let loopRadius = radius + 2;
 
 		let p, gridPosition = new THREE.Vector3();
 		const centerRounded = center.clone().round()
@@ -288,6 +288,7 @@ export default class VolumetricChunk {
 	}
 
 	drawCube ( center, radius, x, y, z ) {
+		// TODO center rounding things need to be rotated correctly
 		let p0 = new THREE.Vector3(
 			Math.abs(Math.round(center.x + x) - center.x), 
 			Math.abs(Math.round(center.y + y) - center.y), 
@@ -295,7 +296,7 @@ export default class VolumetricChunk {
 		);
 
 
-		const q = p0.sub(new THREE.Vector3(radius, radius, radius))
+		const q = p0.sub(new THREE.Vector3(radius, radius, radius/6))
 		const outsideD = q.clone().max(new THREE.Vector3(0,0,0)).length();
 		const insideD = Math.min( Math.max(q.x,q.y,q.z), 0.0);
   		const d = outsideD + insideD;
@@ -303,8 +304,8 @@ export default class VolumetricChunk {
 		// console.log(q, outsideD, insideD)
 
 		// return d < 0 ? Math.inf : 0;
-		return Math.min(d, 0);
-		// return map( d, 0, 1, 1, 0, true );
+		// return d;
+		return map( d, 0, 1, 1, 0, true );
 	}
 
 

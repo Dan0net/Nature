@@ -49,7 +49,7 @@ export default class Player extends THREE.Object3D {
 
 		//brush vars
 		this.terrainAdjustStrength = 2;
-		this.brushRadius = 3;
+		this.brushRadius = 6;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.05;
 		this.maxBuildDistance = 450;
@@ -671,9 +671,9 @@ export default class Player extends THREE.Object3D {
 			// let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength * delta : this.terrainAdjustStrength * delta;
 			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength ;
 
-			if ( val < 0 ) {
-				this.intersectPoint.point.add(new THREE.Vector3(0, this.brushRadius, 0))
-			}
+			// if ( val < 0 ) {
+			// 	this.intersectPoint.point.add(new THREE.Vector3(0, this.brushRadius, 0))
+			// }
 
 			//tell chunk to change the terrain
 			this.intersectPoint.object.chunk.adjust( this.intersectPoint.point, this.brushRadius, val, this.buildRotation, true, !isPlacing );
