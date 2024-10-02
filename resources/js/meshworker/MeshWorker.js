@@ -32,8 +32,8 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 			let v = generatedSurface.vertices[ i ];
 
 			// fix z-fighting
-			if ( v[ 0 ] < 0.3 ) v[ 1 ] -= 0.01;
-			if ( v[ 2 ] < 0.3 ) v[ 1 ] -= 0.01;
+			// if ( v[ 0 ] < 0.3 ) v[ 1 ] -= 0.01;
+			// if ( v[ 2 ] < 0.3 ) v[ 1 ] -= 0.01;
 
 			vertices[ i * 3 + 0 ] = v[ 0 ];
 			vertices[ i * 3 + 1 ] = v[ 1 ];
@@ -43,7 +43,7 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 			y = v[ 1 ];
 			z = Math.round( v[ 2 ] );
 			terrainHeight = terrainHeights[ z * gridSize.x + x ];
-			adjusted[ i ] = adjustedIndices[ ( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x ];
+			adjusted[ i ] = v [ ( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x ];
 
 			if ( y < terrainHeight ) {
 

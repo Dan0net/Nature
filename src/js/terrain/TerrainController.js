@@ -1,5 +1,6 @@
 import VolumetricTerrain from '../../libraries/volumetric-terrain/VolumetricTerrain';
 import terrainMaterial from './Material';
+import terrainMaterialBasic from './MaterialBasic';
 import Chunk from './Chunk';
 import DB from './DB';
 
@@ -23,6 +24,7 @@ export default class TerrainController extends VolumetricTerrain {
 			viewDistance: viewDistance.viewHigh + viewDistance.viewLow,
 			fps: 24,
 			material: terrainMaterial,
+			// material: terrainMaterialBasic,
 			workers: 4,
 			gridWorkerScript: './resources/js/gridworker/GridWorker.js',
 			meshWorkerScript: './resources/js/meshworker/MeshWorker.js',

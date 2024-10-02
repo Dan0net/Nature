@@ -207,6 +207,7 @@ export default class UIController {
 			const viewDetailOptions = this.elements.viewDetail.querySelectorAll( 'input' );
 			const viewDistanceOptions = this.elements.viewDistance.querySelectorAll( 'input' );
 			const shadowsOptions = this.elements.shadows.querySelectorAll( 'input' );
+			const modeOptions = this.elements.mode.querySelectorAll( 'input' );
 
 			for ( let option of viewDetailOptions ) option.checked = false;
 
@@ -214,9 +215,12 @@ export default class UIController {
 
 			for ( let option of shadowsOptions ) option.checked = false;
 
+			for ( let option of modeOptions ) option.checked = false;
+
 			document.getElementById( 'view-detail-' + options.viewDetail ).checked = true;
 			document.getElementById( 'view-distance-' + options.viewDistance ).checked = true;
 			document.getElementById( 'shadow-' + options.shadows ).checked = true;
+			document.getElementById( 'mode-' + options.mode ).checked = true;
 
 			this.elements.mouseSensitivity.value = options.mouseSensitivity;
 			this.updateValueLabel( { target: this.elements.mouseSensitivity } );
@@ -232,9 +236,10 @@ export default class UIController {
 		const viewDetail = Number( this.elements.viewDetail.querySelector( 'input:checked' ).value );
 		const viewDistance = Number( this.elements.viewDistance.querySelector( 'input:checked' ).value );
 		const shadows = this.elements.shadows.querySelector( 'input:checked' ).value;
+		const mode = this.elements.mode.querySelector( 'input:checked' ).value;
 		const mouseSensitivity = Number( this.elements.mouseSensitivity.value );
 		const saveProgress = this.elements.saveProgress.checked;
-		localStorage.setItem( 'options', JSON.stringify( { viewDetail, viewDistance, shadows, mouseSensitivity, saveProgress } ) );
+		localStorage.setItem( 'options', JSON.stringify( { viewDetail, viewDistance, shadows, mode, mouseSensitivity, saveProgress } ) );
 
 	}
 

@@ -11,26 +11,27 @@ let rocktex = new THREE.TextureLoader().load( './resources/images/terrain/rock.j
 let grasstex = new THREE.TextureLoader().load( './resources/images/terrain/grass.png' );
 let dirttex = new THREE.TextureLoader().load( './resources/images/terrain/dirt.png' );
 
-rocktex.anisotropy = 8;
-grasstex.anisotropy = 8;
-dirttex.anisotropy = 8;
-
-rocktex.wrapS = THREE.RepeatWrapping;
-grasstex.wrapS = THREE.RepeatWrapping;
-dirttex.wrapS = THREE.RepeatWrapping;
-rocktex.wrapT = THREE.RepeatWrapping;
-grasstex.wrapT = THREE.RepeatWrapping;
-dirttex.wrapT = THREE.RepeatWrapping;
+// rocktex.anisotropy = 8;
+// grasstex.anisotropy = 8;
+// dirttex.anisotropy = 8;
 
 rocktex.encoding = THREE.sRGBEncoding;
 grasstex.encoding = THREE.sRGBEncoding;
 dirttex.encoding = THREE.sRGBEncoding;
 
-const terrainMaterial = new THREE.MeshLambertMaterial( {
+// rocktex.minFilter = THREE.LinearMipmapNearestFilter;
+rocktex.wrapS = THREE.RepeatWrapping
+rocktex.wrapT = THREE.RepeatWrapping
+
+console.log(rocktex.minFilter)
+console.log(THREE.NearestMipMapLinearFilter)
+console.log(THREE.LinearMipMapLinearFilter)
+
+const terrainMaterialBasic = new THREE.MeshLambertMaterial( {
 	// dithering: false,
 	map: rocktex, // enables UV's in shader
 } );
-terrainMaterial.onBeforeCompile = ( shader ) => {
+terrainMaterialBasic.onBeforeCompile = ( shader ) => {
 
 	shader.uniforms.tDiff = {
 		value: [
@@ -83,50 +84,19 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
             vec4 getTriPlanarTexture(){
                                     
                 //mesh scaled
-                float rockRepeat = 0.5;
-                float grassRepeat = 0.5;
-                float dirtRepeat = 0.5;
+                float rockRepeat = 0.1;
+                float grassRepeat = 1.0;
+                float dirtRepeat = 0.1;
 
                 vec3 blending = getTriPlanarBlend( vNormal2 );
                 
-                vec3 xaxis = mix(
-                        
-                        texture2D( tDiff[0], (vPos.yz * rockRepeat) ).rgb,
-                        texture2D( tDiff[2], (vPos.yz * dirtRepeat) ).rgb,
-                        vAdjusted
-                    );
+                vec3 xaxis = texture2D( tDiff[0], (vPos.yz * grassRepeat) ).rgb;
 
-                vec3 zaxis = mix(
-                        
-                        texture2D( tDiff[0], (vPos.xy * rockRepeat) ).rgb,
-                        texture2D( tDiff[2], (vPos.xy * dirtRepeat) ).rgb,
-                        vAdjusted
-                    );
+                vec3 zaxis = texture2D( tDiff[0], (vPos.xy * grassRepeat) ).rgb;
                 
-                vec3 yaxis;
-                if ( vNormal2.y < 0.2){
+                vec3 yaxis = texture2D( tDiff[0], (vPos.xz * grassRepeat) ).rgb;
 
-                    yaxis = texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb;
-
-                } else {
-                        
-                    vec3 yaxis1 = mix(
-                        texture2D( tDiff[1], (vPos.xz * grassRepeat) ).rgb,
-                        texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb,
-                        vForceStone
-                    );
-
-                    vec3 yaxis2 = mix(
-                        texture2D( tDiff[2], (vPos.xz * dirtRepeat) ).rgb,
-                        texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb,
-                        vForceStone
-                    );
-
-                    yaxis = mix( yaxis1, yaxis2, vAdjusted );
-
-                }
-
-                return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z, 1.0 );
+                return vec4( yaxis, 1.0 );
 
             }
             `
@@ -137,13 +107,10 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
 	shader.fragmentShader = shader.fragmentShader.replace(
 		'vec4 diffuseColor = vec4( diffuse, opacity );',
 		`
-        vec3 norm = normalize(vNormal2);
-        vec3 lightDir = normalize(vec3(1000.0, 1000.0, 0.0) - vPos);
-        float diff = 0.6 + max(dot(norm, lightDir), 0.0) * 0.4;
-        vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff, opacity );
+        vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb, opacity );
         `
 	);
 
 };
 
-export default terrainMaterial;
+export default terrainMaterialBasic;

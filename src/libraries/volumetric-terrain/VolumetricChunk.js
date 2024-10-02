@@ -247,9 +247,11 @@ export default class VolumetricChunk {
 		//square loop around a sphere brush
 		let loopRadius = radius + 2;
 
-		let p, gridPosition = new THREE.Vector3();
+		let p;
+		let gridPosition = new THREE.Vector3();
+		let pos = new THREE.Vector3();
 		const centerRounded = center.clone().round()
-		console.log(center)
+		const eulerRot = new THREE.Euler(0, rot, 0, 'XYZ')
 
 		for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
 
@@ -259,13 +261,15 @@ export default class VolumetricChunk {
 					gridPosition.set( x, y, z ).add( centerRounded );
 
 					if ( this.isInsideGrid( gridPosition ) ) {
-						let pos = new THREE.Vector3(x, y, z)
-						pos.applyEuler(new THREE.Euler(0, rot, 0, 'XYZ'))
-						// let p = this.drawSphere( center, radius, x, y, z );
-						let p = this.drawCube( center, radius, pos.x, pos.y, pos.z );
+						pos.set(x, y, z).add( centerRounded ).sub ( center )
+						pos.applyEuler(eulerRot)						
+						
+						// pos.applyEuler(new THREE.Euler(0, rot, 0, 'XYZ'))
+						p = this.drawSphere( pos, radius );
+						// p = this.drawCube( pos, radius );
 						// console.log(p);
 						this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p );
-						// if (p < 0) {
+						// if (p > 0) {
 						this.saveGridPosition( gridPosition );
 						// }
 					}
@@ -280,23 +284,16 @@ export default class VolumetricChunk {
 		this.needsUpdate = true;
 	}
 
-	drawSphere ( center, radius, x, y, z ) {
-		let p0 = new THREE.Vector3(Math.round(center.x + x), Math.round(center.y + y), Math.round(center.z + z));
-		let d = center.distanceTo(p0);
+	drawSphere ( pos, radius ) {
+		let d = pos.length();
 
 		return map( d, 0, radius * 0.75, 1, 0, true );
 	}
 
-	drawCube ( center, radius, x, y, z ) {
-		// TODO center rounding things need to be rotated correctly
-		let p0 = new THREE.Vector3(
-			Math.abs(Math.round(center.x + x) - center.x), 
-			Math.abs(Math.round(center.y + y) - center.y), 
-			Math.abs(Math.round(center.z + z) - center.z)
-		);
+	drawCube ( pos, radius ) {
+		pos.set(Math.abs(pos.x), Math.abs(pos.y), Math.abs(pos.z))
 
-
-		const q = p0.sub(new THREE.Vector3(radius, radius, radius/6))
+		const q = pos.sub(new THREE.Vector3(radius, radius, .5))
 		const outsideD = q.clone().max(new THREE.Vector3(0,0,0)).length();
 		const insideD = Math.min( Math.max(q.x,q.y,q.z), 0.0);
   		const d = outsideD + insideD;
@@ -305,7 +302,7 @@ export default class VolumetricChunk {
 
 		// return d < 0 ? Math.inf : 0;
 		// return d;
-		return map( d, 0, 1, 1, 0, true );
+		return map( d, 0, 0.75, 1, 0, true );
 	}
 
 
@@ -341,6 +338,8 @@ export default class VolumetricChunk {
 
 				let nChunk = this.terrain.getChunkKey( { x: this.offset.x + i, z: this.offset.z + j } );
 				const chunk = this.terrain.chunks[ nChunk ];
+
+				if ( !chunk ) continue;
 
 				if (
 					( ( i > 0 ? this.terrain.gridSize.x : 0 ) + ( localCenter.x * -i ) - radius - extraMargin <= 0 ) &&
