@@ -245,7 +245,7 @@ export default class VolumetricChunk {
 	async adjustGrid( center, radius, val, rot ) {
 
 		//square loop around a sphere brush
-		let loopRadius = radius + 2;
+		let loopRadius = radius + 4;
 
 		let p;
 		let gridPosition = new THREE.Vector3();
@@ -265,13 +265,13 @@ export default class VolumetricChunk {
 						pos.applyEuler(eulerRot)						
 						
 						// pos.applyEuler(new THREE.Euler(0, rot, 0, 'XYZ'))
-						p = this.drawSphere( pos, radius );
-						// p = this.drawCube( pos, radius );
+						// p = this.drawSphere( pos, radius );
+						p = this.drawCube( pos, radius );
 						// console.log(p);
 						this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p );
-						// if (p > 0) {
-						this.saveGridPosition( gridPosition );
-						// }
+						if (p > 0) {
+							this.saveGridPosition( gridPosition );
+						}
 					}
 
 				}
@@ -293,7 +293,7 @@ export default class VolumetricChunk {
 	drawCube ( pos, radius ) {
 		pos.set(Math.abs(pos.x), Math.abs(pos.y), Math.abs(pos.z))
 
-		const q = pos.sub(new THREE.Vector3(radius, radius, .5))
+		const q = pos.sub(new THREE.Vector3(radius, radius, 0.5))
 		const outsideD = q.clone().max(new THREE.Vector3(0,0,0)).length();
 		const insideD = Math.min( Math.max(q.x,q.y,q.z), 0.0);
   		const d = outsideD + insideD;
@@ -302,7 +302,7 @@ export default class VolumetricChunk {
 
 		// return d < 0 ? Math.inf : 0;
 		// return d;
-		return map( d, 0, 0.75, 1, 0, true );
+		return map( d, 0, 1, 1, 0, true );
 	}
 
 
@@ -392,7 +392,9 @@ export default class VolumetricChunk {
 		// return this.gridTemp[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
 		const v = val + this.grid[ gridOffset ]
 		// return g[ gridOffset ] = v > 0 ? Math.nan : v;
-		return g[ gridOffset ] = v;
+		// return g[ gridOffset ] = Math.max(val, this.grid[ gridOffset ]);
+		// return g[ gridOffset ] = v;
+		return g[ gridOffset ] = constrain( v, - 0.5, 0.5 );
 		return g[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
 
 	}

@@ -23,10 +23,6 @@ dirttex.encoding = THREE.sRGBEncoding;
 rocktex.wrapS = THREE.RepeatWrapping
 rocktex.wrapT = THREE.RepeatWrapping
 
-console.log(rocktex.minFilter)
-console.log(THREE.NearestMipMapLinearFilter)
-console.log(THREE.LinearMipMapLinearFilter)
-
 const terrainMaterialBasic = new THREE.MeshLambertMaterial( {
 	// dithering: false,
 	map: rocktex, // enables UV's in shader

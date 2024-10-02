@@ -1,3 +1,4 @@
+import BuildMarker from './BuildMarker';
 import { modelBank } from '../modelloader/ModelLoader';
 import * as THREE from 'three';
 
@@ -48,7 +49,7 @@ export default class Player extends THREE.Object3D {
 		this.grabbing = false;
 
 		//brush vars
-		this.terrainAdjustStrength = 2;
+		this.terrainAdjustStrength = 1;
 		this.brushRadius = 6;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.05;
@@ -73,6 +74,9 @@ export default class Player extends THREE.Object3D {
 		//flymode selector
 		this.flyMode = false;
 		this.godMode = false;
+
+		//build marker
+		this.buildMarker = new BuildMarker();
 
 	}
 
@@ -188,6 +192,8 @@ export default class Player extends THREE.Object3D {
 
 			app.scene.add( this.skyBox );
 
+			app.scene.add(this.buildMarker);
+			this.buildMarker.visible = false;
 		}
 
 		resolve();
@@ -447,6 +453,8 @@ export default class Player extends THREE.Object3D {
 
 			//set new position and gravity velocity
 			this.position.copy( nPos );
+
+			// console.log(this.position);
 			resolve();
 
 		} );
@@ -669,14 +677,21 @@ export default class Player extends THREE.Object3D {
 			if ( d > this.maxBuildDistance || ( mouseButton == RIGHT && d < this.minDigDistance ) ) return;
 
 			// let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength * delta : this.terrainAdjustStrength * delta;
-			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength ;
+			let val = ( mouseButton == LEFT ) ? this.terrainAdjustStrength : - this.terrainAdjustStrength ;
 
 			// if ( val < 0 ) {
 			// 	this.intersectPoint.point.add(new THREE.Vector3(0, this.brushRadius, 0))
 			// }
 
+			const center = this.intersectPoint.point.clone().add(this.intersectPoint.face.normal)
+
+			this.buildMarker.visible = true;
+			this.buildMarker.position.copy( this.intersectPoint.point );
+			console.log(center)
+			this.buildMarker.lookAt( center );
+
 			//tell chunk to change the terrain
-			this.intersectPoint.object.chunk.adjust( this.intersectPoint.point, this.brushRadius, val, this.buildRotation, true, !isPlacing );
+			this.intersectPoint.object.chunk.adjust( center, this.brushRadius, val, this.buildRotation, true, !isPlacing );
 			app.terrainController.updateInstancedObjects();
 
 		}
