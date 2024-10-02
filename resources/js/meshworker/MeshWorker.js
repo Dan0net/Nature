@@ -43,7 +43,7 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 			y = v[ 1 ];
 			z = Math.round( v[ 2 ] );
 			terrainHeight = terrainHeights[ z * gridSize.x + x ];
-			adjusted[ i ] = v [ ( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x ];
+			adjusted[ i ] = adjustedIndices [ ( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x ];
 
 			if ( y < terrainHeight ) {
 
