@@ -687,7 +687,7 @@ export default class Player extends THREE.Object3D {
 
 			this.buildMarker.visible = true;
 			this.buildMarker.position.copy( this.intersectPoint.point );
-			console.log(center)
+			// console.log(center)
 			this.buildMarker.lookAt( center );
 
 			//tell chunk to change the terrain

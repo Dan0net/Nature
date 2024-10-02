@@ -50,22 +50,27 @@ export default class VolumetricChunk {
 
 	flipMesh() {
 
-		if ( this.meshBuffer.mesh ) {
+		this.dispose();
 
-			this.dispose();
+		if ( this.meshBuffer.mesh ) {
 
 			if ( this.useTemporaryGrid ) {
 				this.meshTemp = this.meshBuffer.mesh
-				this.terrain.add( this.meshTemp );
-				this.mesh.visible = false;
 			} else {
 				this.mesh = this.meshBuffer.mesh
 			}
-			this.terrain.add( this.mesh );
-
-			this.LODMesh = this.meshBuffer.LODMesh;
-			this.meshBuffer = {};
 		}
+
+		if ( this.useTemporaryGrid ) {
+			this.terrain.add( this.meshTemp );
+			this.mesh.visible = false;
+		} else {
+			this.mesh.visible = true;
+		}
+		this.terrain.add( this.mesh );
+
+		this.LODMesh = this.meshBuffer.LODMesh;
+		this.meshBuffer = {};
 
 	}
 
@@ -148,8 +153,6 @@ export default class VolumetricChunk {
 	// o888o o888o o888o `Y8bod8P' 8""888P' o888o o888o
 
 	generateMeshData() {
-		console.log(this.terrain.terrainScale)
-
 		return new Promise( resolve =>{
 
 			this.terrain.meshWorkerBank.work(
@@ -286,8 +289,9 @@ export default class VolumetricChunk {
 
 	drawSphere ( pos, radius ) {
 		let d = pos.length();
-
-		return map( d, 0, radius * 0.75, 1, 0, true );
+		
+		// TODO Fix sphere weight
+		return map( d, 0, radius, 1, 0, true );
 	}
 
 	drawCube ( pos, radius ) {
@@ -349,6 +353,7 @@ export default class VolumetricChunk {
 						chunk.adjust( center, radius, val, rot, false, this.useTemporaryGrid );
 					}
 				} else if ( chunk.useTemporaryGrid ) {
+					console.log(chunk.chunkKey, 'flip off')
 					chunk.useTemporaryGrid = false;
 					chunk.flipMesh();
 				}
@@ -421,8 +426,8 @@ export default class VolumetricChunk {
 	async dispose() {
 
 		if ( this.mesh ) {
-
-			this.mesh.geometry.dispose();
+			// TODO fix clean up
+			// this.mesh.geometry.dispose();
 			this.terrain.remove( this.mesh );
 			// this.mesh = undefined;
 
