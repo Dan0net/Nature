@@ -227,8 +227,10 @@ export default class VolumetricChunk {
 
 
 	adjust( center, radius, value, rot, checkNeighbors, useTemporaryGrid ) {
+		
+		// if ( this.terrain.updating !== false ) return;
 
-		if ( this.terrain.updating !== false ) return;
+		// if (!useTemporaryGrid) console.log('placing!');
 
 		const localCenter = center.clone()
 			.sub( this.mesh.position )

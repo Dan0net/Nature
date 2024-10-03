@@ -91,34 +91,34 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
                 
                 vec3 xaxis = mix(
                         
-                        texture2D( tDiff[0], (vPos.yz * rockRepeat) ).rgb,
-                        texture2D( tDiff[2], (vPos.yz * dirtRepeat) ).rgb,
+                        texture2D( tDiff[0], mod(vPos.yz * rockRepeat, 1.0f) ).rgb,
+                        texture2D( tDiff[2], mod(vPos.yz * dirtRepeat, 1.0f) ).rgb,
                         vAdjusted
                     );
 
                 vec3 zaxis = mix(
                         
-                        texture2D( tDiff[0], (vPos.xy * rockRepeat) ).rgb,
-                        texture2D( tDiff[2], (vPos.xy * dirtRepeat) ).rgb,
+                        texture2D( tDiff[0], mod(vPos.xy * rockRepeat, 1.0f) ).rgb,
+                        texture2D( tDiff[2], mod(vPos.xy * dirtRepeat, 1.0f) ).rgb,
                         vAdjusted
                     );
                 
                 vec3 yaxis;
                 if ( vNormal2.y < 0.2){
 
-                    yaxis = texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb;
+                    yaxis = texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0f) ).rgb;
 
                 } else {
                         
                     vec3 yaxis1 = mix(
-                        texture2D( tDiff[1], (vPos.xz * grassRepeat) ).rgb,
-                        texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb,
+                        texture2D( tDiff[1], mod(vPos.xz * grassRepeat, 1.0f) ).rgb,
+                        texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0f) ).rgb,
                         vForceStone
                     );
 
                     vec3 yaxis2 = mix(
-                        texture2D( tDiff[2], (vPos.xz * dirtRepeat) ).rgb,
-                        texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb,
+                        texture2D( tDiff[2], mod(vPos.xz * dirtRepeat, 1.0f) ).rgb,
+                        texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0f) ).rgb,
                         vForceStone
                     );
 

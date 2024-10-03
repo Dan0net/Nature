@@ -668,10 +668,13 @@ export default class Player extends THREE.Object3D {
 
 		const isPlacing = this.buildPlaceTrigger && mouseIsPressed;
 		this.buildPlaceTrigger = !mouseIsPressed;
+		// console.log(isPlacing, this.buildPlaceTrigger);
 
 		// this.buildTimer > this.maxBuildTime &&
-		if ( app.terrainController.updating == false && this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
+		// if ( app.terrainController.updating == false && this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
+		if ( this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
 
+			// if ( isPlacing) console.log('trying to place..')
 			//exit if building too close by, or too far.
 			let d = this.intersectPoint.point.distanceTo( this.position );
 			if ( d > this.maxBuildDistance || ( mouseButton == RIGHT && d < this.minDigDistance ) ) return;
@@ -694,6 +697,8 @@ export default class Player extends THREE.Object3D {
 			this.intersectPoint.object.chunk.adjust( center, this.brushRadius, val, this.buildRotation, true, !isPlacing );
 			app.terrainController.updateInstancedObjects();
 
+		} else {
+			// if ( isPlacing) console.log('failed to place.')
 		}
 
 	}
