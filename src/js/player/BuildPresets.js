@@ -15,7 +15,7 @@ export default [
     },
     {
         shape: 'sphere',
-        size: new THREE.Vector3(6, 6, 6),
+        size: new THREE.Vector3(6, 0, 0),
         material: 1,
         rotation: new THREE.Euler(0,0,0, 'XYZ')
     }

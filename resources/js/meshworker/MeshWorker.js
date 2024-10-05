@@ -23,7 +23,7 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 		const indices = new Uint16Array( generatedSurface.faces.length * 6 );
 		const vertices = new Float32Array( generatedSurface.vertices.length * 3 );
 		const underground = new Float32Array( generatedSurface.vertices.length );
-		const adjusted = new Int8Array( generatedSurface.vertices.length );
+		const adjusted = new Int8Array( generatedSurface.vertices.length * 4 );
 
 
 		let x, y, z, terrainHeight, smoothRange = 2, topIndex = 0;
@@ -43,7 +43,12 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 			y = v[ 1 ];
 			z = Math.round( v[ 2 ] );
 			terrainHeight = terrainHeights[ z * gridSize.x + x ];
-			adjusted[ i ] = adjustedIndices [ ( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x ];
+			
+			let a = adjustedIndices[( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x];
+			adjusted[ i * 4 + 0 ] = (a == 0 ? 1 : 0);
+			adjusted[ i * 4 + 1 ] = (a == 1 ? 1 : 0);
+			adjusted[ i * 4 + 2 ] = (a == 2 ? 1 : 0);
+			adjusted[ i * 4 + 3 ] = (a == 3 ? 1 : 0);
 
 			if ( y < terrainHeight ) {
 

@@ -10,21 +10,26 @@ import * as THREE from 'three';
 let rocktex = new THREE.TextureLoader().load( './resources/images/terrain/rock.jpg' );
 let grasstex = new THREE.TextureLoader().load( './resources/images/terrain/grass.png' );
 let dirttex = new THREE.TextureLoader().load( './resources/images/terrain/dirt.png' );
+let woodtex = new THREE.TextureLoader().load( './resources/images/terrain/wood.png' );
 
 rocktex.anisotropy = 8;
 grasstex.anisotropy = 8;
 dirttex.anisotropy = 8;
+woodtex.anisotropy = 8;
 
 rocktex.wrapS = THREE.RepeatWrapping;
 grasstex.wrapS = THREE.RepeatWrapping;
 dirttex.wrapS = THREE.RepeatWrapping;
+woodtex.wrapS = THREE.RepeatWrapping;
 rocktex.wrapT = THREE.RepeatWrapping;
 grasstex.wrapT = THREE.RepeatWrapping;
 dirttex.wrapT = THREE.RepeatWrapping;
+woodtex.wrapT = THREE.RepeatWrapping;
 
 rocktex.encoding = THREE.sRGBEncoding;
 grasstex.encoding = THREE.sRGBEncoding;
 dirttex.encoding = THREE.sRGBEncoding;
+woodtex.encoding = THREE.sRGBEncoding;
 
 const terrainMaterial = new THREE.MeshLambertMaterial( {
 	// dithering: false,
@@ -36,15 +41,14 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
 		value: [
 			rocktex,
 			grasstex,
-			dirttex
+			dirttex,
+            woodtex
 		]
 	};
 
 	shader.vertexShader = `
-        attribute float force_stone;
-        attribute float adjusted;
-        varying float vAdjusted;
-        varying float vForceStone;
+        attribute vec4 adjusted;
+        varying vec4 vAdjusted;
         varying vec3 vPos;
         varying vec3 vNormal2;
     ` + shader.vertexShader
@@ -54,17 +58,15 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
             #include <worldpos_vertex>
             vPos = vec3( worldPosition );
             vNormal2 = normal;
-            vForceStone = force_stone;
             vAdjusted = adjusted;
             `
 		);
 
 	shader.fragmentShader = `
-        uniform sampler2D tDiff[3];
+        uniform sampler2D tDiff[4];
         varying vec3 vPos;
         varying vec3 vNormal2;
-        varying float vForceStone;
-        varying float vAdjusted;
+        varying vec4 vAdjusted;
     ` + shader.fragmentShader
 		.replace(
 			'#include <map_pars_fragment>',
@@ -83,48 +85,27 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
             vec4 getTriPlanarTexture(){
                                     
                 //mesh scaled
-                float rockRepeat = 0.5;
-                float grassRepeat = 0.5;
-                float dirtRepeat = 0.5;
+                float repeatScale = 0.5;
 
                 vec3 blending = getTriPlanarBlend( vNormal2 );
                 
-                vec3 xaxis = mix(
-                        
-                        texture2D( tDiff[0], mod(vPos.yz * rockRepeat, 1.0f) ).rgb,
-                        texture2D( tDiff[2], mod(vPos.yz * dirtRepeat, 1.0f) ).rgb,
-                        vAdjusted
-                    );
+                vec3 xaxis = 
+                    texture2D( tDiff[0], vPos.yz * repeatScale ).rgb * vAdjusted.x +
+                    texture2D( tDiff[1], vPos.yz * repeatScale ).rgb * vAdjusted.y +
+                    texture2D( tDiff[2], vPos.yz * repeatScale ).rgb * vAdjusted.z +
+                    texture2D( tDiff[3], vPos.yz * repeatScale ).rgb * vAdjusted.w;
 
-                vec3 zaxis = mix(
-                        
-                        texture2D( tDiff[0], mod(vPos.xy * rockRepeat, 1.0f) ).rgb,
-                        texture2D( tDiff[2], mod(vPos.xy * dirtRepeat, 1.0f) ).rgb,
-                        vAdjusted
-                    );
-                
-                vec3 yaxis;
-                if ( vNormal2.y < 0.2){
+                vec3 zaxis = 
+                    texture2D( tDiff[0], vPos.xy * repeatScale ).rgb * vAdjusted.x +
+                    texture2D( tDiff[1], vPos.xy * repeatScale ).rgb * vAdjusted.y +
+                    texture2D( tDiff[2], vPos.xy * repeatScale ).rgb * vAdjusted.z +
+                    texture2D( tDiff[3], vPos.xy * repeatScale ).rgb * vAdjusted.w;
 
-                    yaxis = texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0f) ).rgb;
-
-                } else {
-                        
-                    vec3 yaxis1 = mix(
-                        texture2D( tDiff[1], mod(vPos.xz * grassRepeat, 1.0f) ).rgb,
-                        texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0f) ).rgb,
-                        vForceStone
-                    );
-
-                    vec3 yaxis2 = mix(
-                        texture2D( tDiff[2], mod(vPos.xz * dirtRepeat, 1.0f) ).rgb,
-                        texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0f) ).rgb,
-                        vForceStone
-                    );
-
-                    yaxis = mix( yaxis1, yaxis2, vAdjusted );
-
-                }
+                vec3 yaxis = 
+                    texture2D( tDiff[0], vPos.xz * repeatScale ).rgb * vAdjusted.x +
+                    texture2D( tDiff[1], vPos.xz * repeatScale ).rgb * vAdjusted.y +
+                    texture2D( tDiff[2], vPos.xz * repeatScale ).rgb * vAdjusted.z +
+                    texture2D( tDiff[3], vPos.xz * repeatScale ).rgb * vAdjusted.w;
 
                 return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z, 1.0 );
 
@@ -137,10 +118,7 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
 	shader.fragmentShader = shader.fragmentShader.replace(
 		'vec4 diffuseColor = vec4( diffuse, opacity );',
 		`
-        vec3 norm = normalize(vNormal2);
-        vec3 lightDir = normalize(vec3(1000.0, 1000.0, 0.0) - vPos);
-        float diff = 0.6 + max(dot(norm, lightDir), 0.0) * 0.4;
-        vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff, opacity );
+        vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb, opacity );
         `
 	);
 

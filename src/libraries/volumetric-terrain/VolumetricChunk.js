@@ -56,8 +56,12 @@ export default class VolumetricChunk {
 
 			if ( this.useTemporaryGrid ) {
 				this.meshTemp = this.meshBuffer.mesh
+				this.meshTemp.castShadow = true;
+				this.meshTemp.receiveShadow = true;
 			} else {
 				this.mesh = this.meshBuffer.mesh
+				this.mesh.castShadow = true;
+				this.mesh.receiveShadow = true;
 			}
 		}
 
@@ -226,7 +230,7 @@ export default class VolumetricChunk {
 	// "Y88888P'
 
 
-	adjust( center, buildConfiguration, value, checkNeighbors, useTemporaryGrid ) {
+	adjust( center, buildConfiguration, value, useTemporaryGrid ) {
 		
 		// if ( this.terrain.updating !== false ) return;
 
@@ -244,7 +248,7 @@ export default class VolumetricChunk {
 
 		this.adjustGrid( localCenter, buildConfiguration, value );
 
-		if ( checkNeighbors ) this.adjustNeighbors( center, localCenter, buildConfiguration, value );
+		// if ( checkNeighbors ) this.adjustNeighbors( center, localCenter, buildConfiguration, value );
 	}
 
 	async adjustGrid( center, buildConfiguration, val ) {
@@ -339,36 +343,36 @@ export default class VolumetricChunk {
 	//                             "Y88888P'
 
 
-	adjustNeighbors( center, localCenter, buildConfiguration, val ) {
+	// adjustNeighbors( center, localCenter, buildConfiguration, val ) {
 
-		const extraMargin = 2;
-		let loopRadius = buildConfiguration.size.x + 4;
+	// 	const extraMargin = 2;
+	// 	let loopRadius = buildConfiguration.size.x + 4;
 
-		for (var i = -1; i <=1; i++){
-			for (var j = -1; j <=1; j++){
-				if (i ===0 && j === 0) continue;
+	// 	for (var i = -1; i <=1; i++){
+	// 		for (var j = -1; j <=1; j++){
+	// 			if (i ===0 && j === 0) continue;
 
-				let nChunk = this.terrain.getChunkKey( { x: this.offset.x + i, z: this.offset.z + j } );
-				const chunk = this.terrain.chunks[ nChunk ];
+	// 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x + i, z: this.offset.z + j } );
+	// 			const chunk = this.terrain.chunks[ nChunk ];
 
-				if ( !chunk ) continue;
+	// 			if ( !chunk ) continue;
 
-				if (
-					( ( i > 0 ? this.terrain.gridSize.x : 0 ) + ( localCenter.x * -i ) - loopRadius - extraMargin <= 0 ) &&
-					( ( j > 0 ? this.terrain.gridSize.z : 0 ) + ( localCenter.z * -j ) - loopRadius - extraMargin <= 0 )
-				 ) {
-					if ( true ) {
-						chunk.adjust( center, buildConfiguration, val, false, this.useTemporaryGrid );
-					}
-				} else if ( chunk.useTemporaryGrid ) {
-					console.log(chunk.chunkKey, 'flip off')
-					chunk.useTemporaryGrid = false;
-					chunk.flipMesh();
-				}
-			}
-		}
+	// 			if (
+	// 				( ( i > 0 ? this.terrain.gridSize.x : 0 ) + ( localCenter.x * -i ) - loopRadius - extraMargin <= 0 ) &&
+	// 				( ( j > 0 ? this.terrain.gridSize.z : 0 ) + ( localCenter.z * -j ) - loopRadius - extraMargin <= 0 )
+	// 			 ) {
+	// 				if ( true ) {
+	// 					chunk.adjust( center, buildConfiguration, val, false, this.useTemporaryGrid );
+	// 				}
+	// 			} else if ( chunk.useTemporaryGrid ) {
+	// 				console.log(chunk.chunkKey, 'flip off')
+	// 				chunk.useTemporaryGrid = false;
+	// 				chunk.flipMesh();
+	// 			}
+	// 		}
+	// 	}
 
-	}
+	// }
 
 
 	//  .o88o.                                       .    o8o

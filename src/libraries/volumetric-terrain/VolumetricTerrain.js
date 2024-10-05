@@ -412,4 +412,60 @@ export default class VolumetricTerrain extends THREE.Object3D {
 
 	}
 
+	                                               
+	// 88                        88  88           88  
+	// 88                        ""  88           88  
+	// 88                            88           88  
+	// 88,dPPYba,   88       88  88  88   ,adPPYb,88  
+	// 88P'    "8a  88       88  88  88  a8"    `Y88  
+	// 88       d8  88       88  88  88  8b       88  
+	// 88b,   ,a8"  "8a,   ,a88  88  88  "8a,   ,d88  
+	// 8Y"Ybbd8"'    `"YbbdP'Y8  88  88   `"8bbdP"Y8  
+	
+	build( center, buildConfiguration, value, isTemporary ) {
+	
+		const centerChunkCoord = new THREE.Vector3(
+			center.x / ( this.gridSize.x - CHUNK_OVERLAP ) / this.terrainScale.x,
+			0,
+			center.z / ( this.gridSize.z - CHUNK_OVERLAP ) / this.terrainScale.z
+		).floor();
+		
+		const centerChunkPosition = new THREE.Vector3(
+			centerChunkCoord.x * ( this.gridSize.x - CHUNK_OVERLAP ) * this.terrainScale.x,
+			0,
+			centerChunkCoord.z * ( this.gridSize.z - CHUNK_OVERLAP ) * this.terrainScale.z
+		);
+
+		const localCenter = center.clone().sub(centerChunkPosition).divide(this.terrainScale)
+
+		// console.log(centerChunkCoord)
+
+		const extraMargin = 2;
+		let loopRadius = buildConfiguration.size.x + 4;
+
+		for (var i = -1; i <=1; i++){
+			for (var j = -1; j <=1; j++){
+
+				let nChunk = this.getChunkKey( { x: centerChunkCoord.x + i, z: centerChunkCoord.z + j } );
+				const chunk = this.chunks[ nChunk ];
+
+				if ( !chunk ) continue;
+				// console.log(nChunk)
+
+				if (
+					( ( i > 0 ? this.gridSize.x : 0 ) + ( localCenter.x * -i ) - loopRadius - extraMargin <= 0 ) &&
+					( ( j > 0 ? this.gridSize.z : 0 ) + ( localCenter.z * -j ) - loopRadius - extraMargin <= 0 )
+					) {
+					if ( true ) {
+						chunk.adjust( center, buildConfiguration, value, isTemporary );
+					}
+				} else if ( chunk.useTemporaryGrid ) {
+					// console.log(chunk.chunkKey, 'flip off')
+					chunk.useTemporaryGrid = false;
+					chunk.flipMesh();
+				}
+			}
+		}
+	}
+
 }

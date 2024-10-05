@@ -66,17 +66,17 @@ export default class Chunk extends VolumetricChunk {
 
 		geo.setIndex( new THREE.BufferAttribute( indices, 1 ) );
 		geo.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-		geo.setAttribute( 'force_stone', new THREE.Float32BufferAttribute( underground, 1 ) );
-		geo.setAttribute( 'adjusted', new THREE.BufferAttribute( adjusted, 1 ) );
+		// geo.setAttribute( 'force_stone', new THREE.Float32BufferAttribute( underground, 1 ) );
+		geo.setAttribute( 'adjusted', new THREE.BufferAttribute( adjusted, 4 ) );
 		geo.computeVertexNormals();
 		geo.computeBoundsTree = computeBoundsTree;
 		geo.disposeBoundsTree = disposeBoundsTree;
 		geo.computeBoundsTree();
 
 
-		topgeo.setIndex( new THREE.BufferAttribute( topindices, 1 ) );
-		topgeo.setAttribute( 'position', new THREE.Float32BufferAttribute( topvertices, 3 ) );
-		topgeo.computeVertexNormals();
+		// topgeo.setIndex( new THREE.BufferAttribute( topindices, 1 ) );
+		// topgeo.setAttribute( 'position', new THREE.Float32BufferAttribute( topvertices, 3 ) );
+		// topgeo.computeVertexNormals();
 
 		//create new mesh with preapp.loadedmaterial
 		this.meshBuffer.mesh = new THREE.Mesh( geo, this.terrain.material );
@@ -93,14 +93,14 @@ export default class Chunk extends VolumetricChunk {
 		this.meshBuffer.mesh.matrixAutoUpdate = false;
 		this.meshBuffer.mesh.name = "terrain";
 
-		this.meshBuffer.LODMesh = new THREE.Mesh( topgeo, this.terrain.material );
-		this.meshBuffer.LODMesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );
-		this.meshBuffer.LODMesh.position.x = this.position.x;
-		this.meshBuffer.LODMesh.position.z = this.position.z;
+		// this.meshBuffer.LODMesh = new THREE.Mesh( topgeo, this.terrain.material );
+		// this.meshBuffer.LODMesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );
+		// this.meshBuffer.LODMesh.position.x = this.position.x;
+		// this.meshBuffer.LODMesh.position.z = this.position.z;
 
-		this.meshBuffer.LODMesh.updateWorldMatrix();
-		this.meshBuffer.LODMesh.matrixAutoUpdate = false;
-		this.meshBuffer.LODMesh.name = "terrainTop";
+		// this.meshBuffer.LODMesh.updateWorldMatrix();
+		// this.meshBuffer.LODMesh.matrixAutoUpdate = false;
+		// this.meshBuffer.LODMesh.name = "terrainTop";
 	}
 
 	showLevel( level ) {
@@ -111,13 +111,13 @@ export default class Chunk extends VolumetricChunk {
 
 			if ( this.mesh ) this.terrain.add( this.mesh );
 			if ( this.meshTemp ) this.terrain.add( this.meshTemp );
-			if ( this.LODMesh ) this.terrain.remove( this.LODMesh );
+			// if ( this.LODMesh ) this.terrain.remove( this.LODMesh );
 
 		} else {
 
 			if ( this.mesh ) this.terrain.remove( this.mesh );
 			if ( this.meshTemp ) this.terrain.remove( this.meshTemp );
-			if ( this.LODMesh ) this.terrain.add( this.LODMesh );
+			// if ( this.LODMesh ) this.terrain.add( this.LODMesh );
 
 		}
 

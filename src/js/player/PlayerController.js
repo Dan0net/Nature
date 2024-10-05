@@ -53,7 +53,7 @@ export default class Player extends THREE.Object3D {
 		this.terrainAdjustStrength = 1;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.05;
-		this.maxBuildDistance = 450;
+		this.maxBuildDistance = 5;
 		this.buildRotation = 0;
 		this.buildPlaceTrigger = true;
 
@@ -81,6 +81,7 @@ export default class Player extends THREE.Object3D {
 		this.buildConfiguration = Object.assign({}, BuildPresets[0])
 		this.buildMaterial = 0;
 		this.maxBuildMaterials = 4;
+		this.buildSnap = false;
 	}
 
 	eat() {
@@ -496,12 +497,15 @@ export default class Player extends THREE.Object3D {
 	    if ( e.code == app.key.escape ) app.stopGame();
 		if ( e.code == app.key.grab ) this.grabbing = true;
 		
+		console.log(this.cameraMaxDistance)
+		if ( e.code == app.key.viewMode ) this.cameraMaxDistance = (this.cameraMaxDistance !== this.cameraOriginalDistance ? this.cameraOriginalDistance : 0.01);
 		if ( e.code == app.key.flyMode ) this.flyMode = !this.flyMode;
 
 		if ( e.code == app.key.nextShape ) this.adjustBuildShape(1);
 		if ( e.code == app.key.previousShape ) this.adjustBuildShape(-1);
 		if ( e.code == app.key.nextMaterial ) this.adjustBuildMaterial(1);
 		if ( e.code == app.key.previousMaterial ) this.adjustBuildMaterial(-1);
+		if ( e.code == app.key.snapMode ) this.buildSnap = !this.buildSnap;
 
 	}
 
@@ -672,14 +676,14 @@ export default class Player extends THREE.Object3D {
 	//   "888" `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o
 
 	adjustBuildShape ( delta ) {
-		this.buildPreset = (this.buildPreset + delta) % BuildPresets.length;
+		this.buildPreset = (this.buildPreset + delta + BuildPresets.length) % BuildPresets.length;
 		this.buildConfiguration = Object.assign({}, BuildPresets[this.buildPreset]);
 		console.log(this.buildPreset, this.buildConfiguration)
 
 	}
 
 	adjustBuildMaterial ( delta ) {
-		this.buildMaterial = (this.buildMaterial + delta) % this.maxBuildMaterials;
+		this.buildMaterial = (this.buildMaterial + delta + this.maxBuildMaterials) % this.maxBuildMaterials;
 		this.buildConfiguration['material'] = this.buildMaterial;
 		console.log(this.buildPreset, this.buildConfiguration)
 	}
@@ -695,39 +699,54 @@ export default class Player extends THREE.Object3D {
 
 		// this.buildTimer > this.maxBuildTime &&
 		// if ( app.terrainController.updating == false && this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
+		let val = ( mouseButton == LEFT ) ? this.terrainAdjustStrength : - this.terrainAdjustStrength ;
+		let center;
 		if ( this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
 
 			// if ( isPlacing) console.log('trying to place..')
 			//exit if building too close by, or too far.
-			let d = this.intersectPoint.point.distanceTo( this.position );
-			if ( d > this.maxBuildDistance || ( mouseButton == RIGHT && d < this.minDigDistance ) ) return;
+			// let d = this.intersectPoint.point.distanceTo( this.position );
+			// if ( d > this.maxBuildDistance || ( mouseButton == RIGHT && d < this.minDigDistance ) ) return;
 
 			// let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength * delta : this.terrainAdjustStrength * delta;
-			let val = ( mouseButton == LEFT ) ? this.terrainAdjustStrength : - this.terrainAdjustStrength ;
+			
 
 			// if ( val < 0 ) {
 			// 	this.intersectPoint.point.add(new THREE.Vector3(0, this.brushRadius, 0))
 			// }
 
-			const buildBBox = this.buildConfiguration.size.clone().applyEuler(this.buildConfiguration.rotation)
+			// const buildBBox = this.buildConfiguration.size.clone().applyEuler(this.buildConfiguration.rotation)
 			// console.log(this.intersectPoint.face.normal, buildBBox)
 			// buildBBox.multiplyVectors(buildBBox, this.intersectPoint.face.normal)
 
-			const center = this.intersectPoint.point.clone().add(this.intersectPoint.face.normal)
-
+			center = this.intersectPoint.point.clone().add(new THREE.Vector3(
+				this.intersectPoint.face.normal.x,
+				this.buildConfiguration.size.y/2,
+				this.intersectPoint.face.normal.z
+			))
+			
 			this.buildMarker.visible = true;
 			this.buildMarker.position.copy( this.intersectPoint.point );
 			// console.log(center)
 			this.buildMarker.lookAt( center );
-
-			//tell chunk to change the terrain
-			//TODO move this to TerrainController
-			this.intersectPoint.object.chunk.adjust( center, this.buildConfiguration, val, true, !isPlacing );
-			app.terrainController.updateInstancedObjects();
-
 		} else {
-			// if ( isPlacing) console.log('failed to place.')
+			const direction = new THREE.Vector3();
+			this.cameraRig.getWorldDirection(direction)
+
+			// center = this.cameraRig.position.clone().add(direction.multiplyScalar(-this.maxBuildDistance));
+			center = new THREE.Vector3(-3, 12, -3)
+			console.log(center)
+			this.buildMarker.visible = false;
 		}
+
+		//tell chunk to change the terrain
+		//TODO move this to TerrainController
+		// this.intersectPoint.object.chunk.adjust( center, this.buildConfiguration, val, true, !isPlacing );
+		if ( this.buildSnap ) {
+			center.round();
+		}
+		app.terrainController.build( center, this.buildConfiguration, val, !isPlacing );
+		app.terrainController.updateInstancedObjects();
 
 	}
 

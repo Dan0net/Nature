@@ -51,6 +51,8 @@ export default class App {
 			previousShape: 'KeyQ',
 			nextMaterial: 'KeyC',
 			previousMaterial: 'KeyZ',
+			viewMode: 'KeyV',
+			snapMode: 'KeyR',
 			flyMode: 'KeyF',
 			// grab: 'KeyF',
 			// zoom: 'KeyC',
@@ -250,8 +252,31 @@ export default class App {
 
 
 		//lights
-		let amb = new THREE.AmbientLight( "rgb(240,240,240)", 0.45 );
-		this.scene.add( amb );
+		const skyColor = 0xB1E1FF;  // light blue
+		const groundColor = 0xB97A20;  // brownish orange
+		const Hintensity = 0.3;
+		const Hlight = new THREE.HemisphereLight(skyColor, groundColor, Hintensity);
+		this.scene.add(Hlight);
+
+		const Dcolor = 0xFFFFFF;
+		const Dintensity = 2;
+		this.Dlight = new THREE.DirectionalLight(Dcolor, Dintensity);
+		this.Dlight.position.set(-75, 100, -75);
+		this.Dlight.target.position.set(0, 20, 0);
+		this.Dlight.castShadow = true;
+		this.Dlight.shadow.camera.zoom = 1;
+		this.Dlight.shadow.camera.blur = 4;
+		this.Dlight.shadow.camera.radius = 10;
+		this.Dlight.shadow.camera.left = -30
+		this.Dlight.shadow.camera.right = 30;
+		this.Dlight.shadow.camera.top = 30;
+		this.Dlight.shadow.camera.bottom = -30;
+		console.log(this.Dlight.shadow.camera)
+		this.scene.add(this.Dlight);
+		this.scene.add(this.Dlight.target);
+
+		const cameraHelper = new THREE.CameraHelper(this.Dlight.shadow.camera);
+		this.scene.add(cameraHelper);
 
 		//fog
 		this.scene.fog = new THREE.FogExp2( 'rgb(240, 240, 255)', 0.00045 );
@@ -317,16 +342,16 @@ export default class App {
 		text( "SPACE", width * 0.01, height * 0.90 );
 		text( "- jump", width * 0.05, height * 0.90 );
 
-		text( "E", width * 0.01, height * 0.92 );
-		text( "- grab", width * 0.05, height * 0.92 );
+		text( "Q + E", width * 0.01, height * 0.92 );
+		text( "- change shape", width * 0.05, height * 0.92 );
 
-		text( "R", width * 0.01, height * 0.94 );
-		text( "- eat", width * 0.05, height * 0.94 );
+		text( "Z + C", width * 0.01, height * 0.94 );
+		text( "- change material", width * 0.05, height * 0.94 );
 
-		text( "C", width * 0.01, height * 0.96 );
-		text( "- zoom", width * 0.05, height * 0.96 );
+		text( "V", width * 0.01, height * 0.96 );
+		text( "- camera view", width * 0.05, height * 0.96 );
 
-		text( "MOUSE", width * 0.01, height * 0.98 );
+		text( "L + R MOUSE", width * 0.01, height * 0.98 );
 		text( "- remove/add terrain", width * 0.05, height * 0.98 );
 
 		// const coord = this.terrainController.getCoordFromPosition( this.player.position );
