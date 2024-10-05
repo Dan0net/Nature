@@ -66,6 +66,7 @@ terrainMaterialBasic.onBeforeCompile = ( shader ) => {
 		.replace(
 			'#include <map_pars_fragment>',
 			`
+            #extension GL_EXT_fragment_shader_barycentric : require
 
             vec3 getTriPlanarBlend(vec3 _wNorm){
                 vec3 blending = vec3( _wNorm );                
@@ -77,7 +78,27 @@ terrainMaterialBasic.onBeforeCompile = ( shader ) => {
                 return blending * blending;
             }
 
+            vec3 computeBarycentric(vec3 p, vec3 a, vec3 b, vec3 c)
+            {
+                vec3 v0 = b - a;
+                vec3 v1 = c - a;
+                vec3 v2 = p - a;
+                float d00 = dot(v0, v0);
+                float d01 = dot(v0, v1);
+                float d11 = dot(v1, v1);
+                float d20 = dot(v2, v0);
+                float d21 = dot(v2, v1);
+                float denom = d00 * d11 - d01 * d01;
+                vec3 barycentric;
+                barycentric.y = (d11 * d20 - d01 * d21) / denom;
+                barycentric.z = (d00 * d21 - d01 * d20) / denom;
+                barycentric.x = 1.0 - barycentric.y - barycentric.z;
+                return barycentric;
+            }
+
             vec4 getTriPlanarTexture(){
+
+                return vec4(gl_BaryCoordEXT, 1.0);
                                     
                 //mesh scaled
                 float rockRepeat = 0.1;
@@ -94,6 +115,35 @@ terrainMaterialBasic.onBeforeCompile = ( shader ) => {
 
                 return vec4( yaxis, 1.0 );
 
+            }
+
+            vec4 getEdge(){
+                // Calculate the index in the vertex array based on gl_PrimitiveID
+                int triangleID = gl_PrimitiveID;
+                if (triangleID >= triangleCount) {
+                    discard; // Safety check in case of overflow
+                }
+
+                // Fetch the triangle vertices using the triangle ID
+                vec3 v0 = vertexPositions[3 * triangleID + 0];
+                vec3 v1 = vertexPositions[3 * triangleID + 1];
+                vec3 v2 = vertexPositions[3 * triangleID + 2];
+
+                // Get the current fragment's position in world space (you'll need to pass this)
+                vec3 fragmentPosition = ... ;  // Use interpolated vertex position or another method to get this
+
+                // Calculate barycentric coordinates
+                vec3 barycentric = computeBarycentric(fragmentPosition, v0, v1, v2);
+
+                // Optional: Highlight edges by checking how close the barycentric coords are to zero
+                float edgeThreshold = 0.02;
+                float edge = min(min(barycentric.x, barycentric.y), barycentric.z);
+
+                if (edge < edgeThreshold) {
+                    FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Draw edges in black
+                } else {
+                    FragColor = vec4(barycentric, 1.0); // Color based on barycentric coordinates
+                }
             }
             `
 		);

@@ -27,6 +27,11 @@ export default class App {
 			antialias: true,
 			logarithmicDepthBuffer: true
 		} );
+		const gl = this.renderer.getContext();
+		gl.getExtension('GL_EXT_fragment_shader_barycentric');
+
+		console.log("WebGL Version: ", gl.getParameter(gl.VERSION));
+		console.log(gl.getSupportedExtensions());
 
 		this.uiController = new UIController();
 		this.terrainController;
