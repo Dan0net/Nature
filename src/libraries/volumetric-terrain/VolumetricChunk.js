@@ -226,7 +226,7 @@ export default class VolumetricChunk {
 	// "Y88888P'
 
 
-	adjust( center, radius, value, rot, checkNeighbors, useTemporaryGrid ) {
+	adjust( center, buildConfiguration, value, checkNeighbors, useTemporaryGrid ) {
 		
 		// if ( this.terrain.updating !== false ) return;
 
@@ -242,21 +242,25 @@ export default class VolumetricChunk {
 			this.gridTemp = new Float32Array( this.grid );
 		}
 
-		this.adjustGrid( localCenter, radius, value, rot );
+		this.adjustGrid( localCenter, buildConfiguration, value );
 
-		if ( checkNeighbors ) this.adjustNeighbors( center, localCenter, radius, value, rot );
+		if ( checkNeighbors ) this.adjustNeighbors( center, localCenter, buildConfiguration, value );
 	}
 
-	async adjustGrid( center, radius, val, rot ) {
+	async adjustGrid( center, buildConfiguration, val ) {
+
+		const drawFunc = {
+			'sphere': this.drawSphere,
+			'cube': this.drawCube
+		}[buildConfiguration.shape]
 
 		//square loop around a sphere brush
-		let loopRadius = radius + 4;
+		let loopRadius = buildConfiguration.size.x + 4;
 
 		let p;
 		let gridPosition = new THREE.Vector3();
 		let pos = new THREE.Vector3();
 		const centerRounded = center.clone().round()
-		const eulerRot = new THREE.Euler(0, rot, 0, 'XYZ')
 
 		for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
 
@@ -267,15 +271,16 @@ export default class VolumetricChunk {
 
 					if ( this.isInsideGrid( gridPosition ) ) {
 						pos.set(x, y, z).add( centerRounded ).sub ( center )
-						pos.applyEuler(eulerRot)						
+						pos.applyEuler(buildConfiguration.rotation)						
 						
 						// pos.applyEuler(new THREE.Euler(0, rot, 0, 'XYZ'))
 						// p = this.drawSphere( pos, radius );
-						p = this.drawCube( pos, radius );
+						p = drawFunc( pos, buildConfiguration )
+						// p = this.drawCube( pos, radius );
 						// console.log(p);
 						this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p );
 						if (p > 0) {
-							this.saveGridPosition( gridPosition );
+							this.saveGridPosition( gridPosition, buildConfiguration.material );
 						}
 					}
 
@@ -289,17 +294,17 @@ export default class VolumetricChunk {
 		this.needsUpdate = true;
 	}
 
-	drawSphere ( pos, radius ) {
+	drawSphere ( pos, buildConfiguration ) {
 		let d = pos.length();
 		
 		// TODO Fix sphere weight
-		return map( d, 0, radius, 1, 0, true );
+		return map( d, 0, buildConfiguration.size.x, 1, 0, true );
 	}
 
-	drawCube ( pos, radius ) {
+	drawCube ( pos, buildConfiguration ) {
 		pos.set(Math.abs(pos.x), Math.abs(pos.y), Math.abs(pos.z))
 
-		const q = pos.sub(new THREE.Vector3(radius, radius, 0.5))
+		const q = pos.sub(buildConfiguration.size)
 		const outsideD = q.clone().max(new THREE.Vector3(0,0,0)).length();
 		const insideD = Math.min( Math.max(q.x,q.y,q.z), 0.0);
   		const d = outsideD + insideD;
@@ -334,9 +339,10 @@ export default class VolumetricChunk {
 	//                             "Y88888P'
 
 
-	adjustNeighbors( center, localCenter, radius, val, rot ) {
+	adjustNeighbors( center, localCenter, buildConfiguration, val ) {
 
 		const extraMargin = 2;
+		let loopRadius = buildConfiguration.size.x + 4;
 
 		for (var i = -1; i <=1; i++){
 			for (var j = -1; j <=1; j++){
@@ -348,11 +354,11 @@ export default class VolumetricChunk {
 				if ( !chunk ) continue;
 
 				if (
-					( ( i > 0 ? this.terrain.gridSize.x : 0 ) + ( localCenter.x * -i ) - radius - extraMargin <= 0 ) &&
-					( ( j > 0 ? this.terrain.gridSize.z : 0 ) + ( localCenter.z * -j ) - radius - extraMargin <= 0 )
+					( ( i > 0 ? this.terrain.gridSize.x : 0 ) + ( localCenter.x * -i ) - loopRadius - extraMargin <= 0 ) &&
+					( ( j > 0 ? this.terrain.gridSize.z : 0 ) + ( localCenter.z * -j ) - loopRadius - extraMargin <= 0 )
 				 ) {
 					if ( true ) {
-						chunk.adjust( center, radius, val, rot, false, this.useTemporaryGrid );
+						chunk.adjust( center, buildConfiguration, val, false, this.useTemporaryGrid );
 					}
 				} else if ( chunk.useTemporaryGrid ) {
 					console.log(chunk.chunkKey, 'flip off')

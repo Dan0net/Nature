@@ -176,11 +176,11 @@ export default class Chunk extends VolumetricChunk {
 
 	}
 
-	saveGridPosition( gridPosition ) {
+	saveGridPosition( gridPosition, materialInd ) {
 		const a = this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices;
 
 		const index = this.gridIndex( gridPosition.x, gridPosition.y, gridPosition.z );
-		a[ index ] = 1;
+		a[ index ] = materialInd;
 
 		if ( !this.useTemporaryGrid) {
 			if ( this.terrain.DB ) this.adjustedBuffer.push( { index, value: this.grid[ index ] } );
@@ -189,15 +189,15 @@ export default class Chunk extends VolumetricChunk {
 	}
 
 
-	adjust( center, radius, val, rot, checkNeighbors, useTemporaryGrid ) {
+	adjust( center, buildConfiguration, val, checkNeighbors, useTemporaryGrid ) {
 
 		if ( useTemporaryGrid ) {
 			this.adjustedIndicesTemp = new Float32Array( this.adjustedIndices );
 		}
 
-		super.adjust( center, radius, val, rot, checkNeighbors, useTemporaryGrid );
+		super.adjust( center, buildConfiguration, val, checkNeighbors, useTemporaryGrid );
 
-		this.terrain.adjustInstancedObjects( this.chunkKey, center, radius );
+		this.terrain.adjustInstancedObjects( this.chunkKey, center, buildConfiguration.size.x );
 
 	}
 

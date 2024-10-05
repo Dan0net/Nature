@@ -1,6 +1,7 @@
 import BuildMarker from './BuildMarker';
 import { modelBank } from '../modelloader/ModelLoader';
 import * as THREE from 'three';
+import BuildPresets from './BuildPresets';
 
 const _PI_2 = Math.PI / 2;
 
@@ -50,7 +51,6 @@ export default class Player extends THREE.Object3D {
 
 		//brush vars
 		this.terrainAdjustStrength = 1;
-		this.brushRadius = 6;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.05;
 		this.maxBuildDistance = 450;
@@ -77,7 +77,10 @@ export default class Player extends THREE.Object3D {
 
 		//build marker
 		this.buildMarker = new BuildMarker();
-
+		this.buildPreset = 0;
+		this.buildConfiguration = Object.assign({}, BuildPresets[0])
+		this.buildMaterial = 0;
+		this.maxBuildMaterials = 4;
 	}
 
 	eat() {
@@ -485,13 +488,20 @@ export default class Player extends THREE.Object3D {
 	//                   o888o
 
 	keyPressed( e ) {
-
+		console.log(e.code)
 		if ( ! app.running ) return;
 
 		if ( e.code == app.key.zoom ) app.zoom( true );
 		if ( e.code == app.key.eat ) this.eat();
 	    if ( e.code == app.key.escape ) app.stopGame();
 		if ( e.code == app.key.grab ) this.grabbing = true;
+		
+		if ( e.code == app.key.flyMode ) this.flyMode = !this.flyMode;
+
+		if ( e.code == app.key.nextShape ) this.adjustBuildShape(1);
+		if ( e.code == app.key.previousShape ) this.adjustBuildShape(-1);
+		if ( e.code == app.key.nextMaterial ) this.adjustBuildMaterial(1);
+		if ( e.code == app.key.previousMaterial ) this.adjustBuildMaterial(-1);
 
 	}
 
@@ -628,15 +638,15 @@ export default class Player extends THREE.Object3D {
 	mouseWheel( e ) {
 
 		if ( ! app.running ) return;
+		e.preventDefault();
 
-		this.cameraMaxDistance += Math.sign( e.deltaY ) * 0.5;
+		// this.cameraMaxDistance += Math.sign( e.deltaY ) * 0.5;
 
 		this.buildRotation = (this.buildRotation + (e.deltaY > 0 ? Math.PI / 8 : -Math.PI / 8)) % (Math.PI * 2);
-
-		if ( this.cameraMaxDistance < 0.01 ) this.cameraMaxDistance = 0.01;
-		if ( this.cameraMaxDistance > this.cameraOriginalDistance * 2 ) this.cameraMaxDistance = this.cameraOriginalDistance * 2;
-		this.updateCameraCollision();
-
+		this.buildConfiguration.rotation.y = this.buildRotation;
+		// if ( this.cameraMaxDistance < 0.01 ) this.cameraMaxDistance = 0.01;
+		// if ( this.cameraMaxDistance > this.cameraOriginalDistance * 2 ) this.cameraMaxDistance = this.cameraOriginalDistance * 2;
+		// this.updateCameraCollision();
 	}
 
 
@@ -660,6 +670,19 @@ export default class Player extends THREE.Object3D {
 	//   888   888ooo888  888      888      .oP"888   888   888   888
 	//   888 . 888    .o  888      888     d8(  888   888   888   888
 	//   "888" `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o
+
+	adjustBuildShape ( delta ) {
+		this.buildPreset = (this.buildPreset + delta) % BuildPresets.length;
+		this.buildConfiguration = Object.assign({}, BuildPresets[this.buildPreset]);
+		console.log(this.buildPreset, this.buildConfiguration)
+
+	}
+
+	adjustBuildMaterial ( delta ) {
+		this.buildMaterial = (this.buildMaterial + delta) % this.maxBuildMaterials;
+		this.buildConfiguration['material'] = this.buildMaterial;
+		console.log(this.buildPreset, this.buildConfiguration)
+	}
 
 
 
@@ -686,6 +709,10 @@ export default class Player extends THREE.Object3D {
 			// 	this.intersectPoint.point.add(new THREE.Vector3(0, this.brushRadius, 0))
 			// }
 
+			const buildBBox = this.buildConfiguration.size.clone().applyEuler(this.buildConfiguration.rotation)
+			// console.log(this.intersectPoint.face.normal, buildBBox)
+			// buildBBox.multiplyVectors(buildBBox, this.intersectPoint.face.normal)
+
 			const center = this.intersectPoint.point.clone().add(this.intersectPoint.face.normal)
 
 			this.buildMarker.visible = true;
@@ -694,7 +721,8 @@ export default class Player extends THREE.Object3D {
 			this.buildMarker.lookAt( center );
 
 			//tell chunk to change the terrain
-			this.intersectPoint.object.chunk.adjust( center, this.brushRadius, val, this.buildRotation, true, !isPlacing );
+			//TODO move this to TerrainController
+			this.intersectPoint.object.chunk.adjust( center, this.buildConfiguration, val, true, !isPlacing );
 			app.terrainController.updateInstancedObjects();
 
 		} else {

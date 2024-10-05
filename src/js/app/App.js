@@ -41,28 +41,32 @@ export default class App {
 
 		this.terrainSeed = 32921;
 		this.key = {
-			up: 87,
+			up: '87',
 			down: 83,
 			left: 65,
 			right: 68,
 			shift: 16,
 			space: 32,
-			flyMode: 70,
-			grab: 'KeyF',
-			zoom: 'KeyC',
+			nextShape: 'KeyE',
+			previousShape: 'KeyQ',
+			nextMaterial: 'KeyC',
+			previousMaterial: 'KeyZ',
+			flyMode: 'KeyF',
+			// grab: 'KeyF',
+			// zoom: 'KeyC',
 			eat: 'KeyE',
 			escape: 'Escape'
 		};
 
 	}
 
-	zoom( zoomin ) {
+	// zoom( zoomin ) {
 
-		this.player.camera.fov = zoomin ? 21 : 70;
-		this.player.mouseSensitivity *= zoomin ? 0.5 : 2;
-		this.uiController.windowResized();
+	// 	this.player.camera.fov = zoomin ? 21 : 70;
+	// 	this.player.mouseSensitivity *= zoomin ? 0.5 : 2;
+	// 	this.uiController.windowResized();
 
-	}
+	// }
 
 	//              .                          .
 	//            .o8                        .o8
