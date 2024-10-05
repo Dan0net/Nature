@@ -230,7 +230,7 @@ export default class VolumetricChunk {
 	// "Y88888P'
 
 
-	adjust( center, buildConfiguration, value, useTemporaryGrid ) {
+	adjust( center, buildConfiguration, useTemporaryGrid ) {
 		
 		// if ( this.terrain.updating !== false ) return;
 
@@ -246,16 +246,17 @@ export default class VolumetricChunk {
 			this.gridTemp = new Float32Array( this.grid );
 		}
 
-		this.adjustGrid( localCenter, buildConfiguration, value );
+		this.adjustGrid( localCenter, buildConfiguration );
 
 		// if ( checkNeighbors ) this.adjustNeighbors( center, localCenter, buildConfiguration, value );
 	}
 
-	async adjustGrid( center, buildConfiguration, val ) {
+	async adjustGrid( center, buildConfiguration ) {
 
 		const drawFunc = {
 			'sphere': this.drawSphere,
-			'cube': this.drawCube
+			'cube': this.drawCube,
+			'cylinder': this.drawCylinder
 		}[buildConfiguration.shape]
 
 		//square loop around a sphere brush
@@ -266,6 +267,13 @@ export default class VolumetricChunk {
 		let pos = new THREE.Vector3();
 		const centerRounded = center.clone().round()
 
+		const eulerInverse = buildConfiguration.rotation.clone()
+		// eulerInverse.x = -eulerInverse.x;
+		eulerInverse.y = -eulerInverse.y;
+		// eulerInverse.z = -eulerInverse.z;
+
+		const val = buildConfiguration.constructive ? 1 : -1;
+
 		for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
 
 			for ( let z = - loopRadius; z <= loopRadius; z ++ ) {
@@ -275,7 +283,9 @@ export default class VolumetricChunk {
 
 					if ( this.isInsideGrid( gridPosition ) ) {
 						pos.set(x, y, z).add( centerRounded ).sub ( center )
-						pos.applyEuler(buildConfiguration.rotation)						
+						// pos.applyEuler(buildConfiguration.rotation)
+												
+						pos.applyEuler(eulerInverse)						
 						
 						// pos.applyEuler(new THREE.Euler(0, rot, 0, 'XYZ'))
 						// p = this.drawSphere( pos, radius );
@@ -283,7 +293,7 @@ export default class VolumetricChunk {
 						// p = this.drawCube( pos, radius );
 						// console.log(p);
 						this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p );
-						if (p > 0) {
+						if (val > 0 && p > 0) {
 							this.saveGridPosition( gridPosition, buildConfiguration.material );
 						}
 					}
@@ -299,10 +309,10 @@ export default class VolumetricChunk {
 	}
 
 	drawSphere ( pos, buildConfiguration ) {
-		let d = pos.length();
+		let d = pos.length() - buildConfiguration.size.x;
 		
 		// TODO Fix sphere weight
-		return map( d, 0, buildConfiguration.size.x, 1, 0, true );
+		return map( d, -0.1, 0.1, 1, 0, true );
 	}
 
 	drawCube ( pos, buildConfiguration ) {
@@ -317,7 +327,19 @@ export default class VolumetricChunk {
 
 		// return d < 0 ? Math.inf : 0;
 		// return d;
-		return map( d, 0, 1, 1, 0, true );
+		return map( d, 0, 1.5, 1, 0, true );
+	}
+
+	drawCylinder ( pos, buildConfiguration ) {
+		const l = new THREE.Vector2(pos.x, pos.z).length();
+		const d = new THREE.Vector2(
+			Math.abs(l) - buildConfiguration.size.x, 
+			Math.abs(pos.y) - buildConfiguration.size.y
+		);
+
+  		const a = min(max(d.x,d.y), 0.0) + d.max(new THREE.Vector2(0,0)).length();
+
+		return map( a, 0, 1.5, 1, 0, true );
 	}
 
 

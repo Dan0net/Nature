@@ -31,7 +31,7 @@ grasstex.encoding = THREE.sRGBEncoding;
 dirttex.encoding = THREE.sRGBEncoding;
 woodtex.encoding = THREE.sRGBEncoding;
 
-const terrainMaterial = new THREE.MeshLambertMaterial( {
+const terrainMaterial = new THREE.MeshStandardMaterial( {
 	// dithering: false,
 	map: rocktex, // enables UV's in shader
 } );

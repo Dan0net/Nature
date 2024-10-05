@@ -422,7 +422,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 	// 88b,   ,a8"  "8a,   ,a88  88  88  "8a,   ,d88  
 	// 8Y"Ybbd8"'    `"YbbdP'Y8  88  88   `"8bbdP"Y8  
 	
-	build( center, buildConfiguration, value, isTemporary ) {
+	build( center, buildConfiguration, isTemporary ) {
 	
 		const centerChunkCoord = new THREE.Vector3(
 			center.x / ( this.gridSize.x - CHUNK_OVERLAP ) / this.terrainScale.x,
@@ -457,7 +457,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 					( ( j > 0 ? this.gridSize.z : 0 ) + ( localCenter.z * -j ) - loopRadius - extraMargin <= 0 )
 					) {
 					if ( true ) {
-						chunk.adjust( center, buildConfiguration, value, isTemporary );
+						chunk.adjust( center, buildConfiguration, isTemporary );
 					}
 				} else if ( chunk.useTemporaryGrid ) {
 					// console.log(chunk.chunkKey, 'flip off')
