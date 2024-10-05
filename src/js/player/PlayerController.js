@@ -81,7 +81,6 @@ export default class Player extends THREE.Object3D {
 		this.buildConfiguration = Object.assign({}, BuildPresets[0])
 		this.buildMaterial = 0;
 		this.maxBuildMaterials = 4;
-		this.buildSnap = false;
 	}
 
 	eat() {
@@ -505,7 +504,7 @@ export default class Player extends THREE.Object3D {
 		if ( e.code == app.key.previousShape ) this.adjustBuildShape(-1);
 		if ( e.code == app.key.nextMaterial ) this.adjustBuildMaterial(1);
 		if ( e.code == app.key.previousMaterial ) this.adjustBuildMaterial(-1);
-		if ( e.code == app.key.snapMode ) this.buildSnap = !this.buildSnap;
+		if ( e.code == app.key.snapMode ) this.buildConfiguration.gridSnap = !this.buildConfiguration.gridSnap
 
 	}
 
@@ -742,9 +741,6 @@ export default class Player extends THREE.Object3D {
 		//tell chunk to change the terrain
 		//TODO move this to TerrainController
 		// this.intersectPoint.object.chunk.adjust( center, this.buildConfiguration, val, true, !isPlacing );
-		if ( this.buildSnap ) {
-			center.round();
-		}
 		app.terrainController.build( center, this.buildConfiguration, val, !isPlacing );
 		app.terrainController.updateInstancedObjects();
 

@@ -239,7 +239,7 @@ export default class VolumetricChunk {
 		const localCenter = center.clone()
 			.sub( this.mesh.position )
 			.divide( this.terrain.terrainScale )
-			// .round();
+		if (buildConfiguration.gridSnap) localCenter.round()
 
 		this.useTemporaryGrid = useTemporaryGrid;
 		if ( useTemporaryGrid ) {

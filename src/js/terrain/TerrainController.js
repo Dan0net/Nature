@@ -18,11 +18,11 @@ export default class TerrainController extends VolumetricTerrain {
 	constructor( app, offset, viewDistance, saveProgress, seed, callback ) {
 
 		super( {
-			gridSize: { x: 32, y: 256, z: 32 },
+			gridSize: { x: 32, y: 32, z: 32 },
 			terrainScale: { x: .5, y: .5, z: .5 },
 			currentCoord: offset,
 			viewDistance: viewDistance.viewHigh + viewDistance.viewLow,
-			fps: 24,
+			fps: 60,
 			material: terrainMaterial,
 			// material: terrainMaterialBasic,
 			workers: 4,

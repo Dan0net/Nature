@@ -5,18 +5,21 @@ export default [
         shape: 'cube',
         size: new THREE.Vector3(4, 4, 0.5),
         material: 2,
-        rotation: new THREE.Euler(0,0,0, 'XYZ')
+        rotation: new THREE.Euler(0,0,0, 'XYZ'),
+        gridSnap: false
     },
     {
         shape: 'cube',
         size: new THREE.Vector3(4, 0.5, 4),
         material: 2,
-        rotation: new THREE.Euler(0,0,0, 'XYZ')
+        rotation: new THREE.Euler(0,0,0, 'XYZ'),
+        gridSnap: false
     },
     {
         shape: 'sphere',
         size: new THREE.Vector3(6, 0, 0),
         material: 1,
-        rotation: new THREE.Euler(0,0,0, 'XYZ')
+        rotation: new THREE.Euler(0,0,0, 'XYZ'),
+        gridSnap: false
     }
 ]
