@@ -31,6 +31,8 @@ grasstex.encoding = THREE.sRGBEncoding;
 dirttex.encoding = THREE.sRGBEncoding;
 woodtex.encoding = THREE.sRGBEncoding;
 
+grasstex.minFilter = THREE.NearestFilter;
+
 const terrainMaterial = new THREE.MeshStandardMaterial( {
 	// dithering: false,
 	map: rocktex, // enables UV's in shader
@@ -83,29 +85,31 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
             }
 
             vec4 getTriPlanarTexture(){
+                float pixelSize = 1.0 / 16.0;
+                vec3 pos = floor(vPos / pixelSize) * pixelSize;
                                     
                 //mesh scaled
-                float repeatScale = 0.5;
+                float repeatScale = 0.25;
 
                 vec3 blending = getTriPlanarBlend( vNormal2 );
                 
                 vec3 xaxis = 
-                    texture2D( tDiff[0], vPos.yz * repeatScale ).rgb * vAdjusted.x +
-                    texture2D( tDiff[1], vPos.yz * repeatScale ).rgb * vAdjusted.y +
-                    texture2D( tDiff[2], vPos.yz * repeatScale ).rgb * vAdjusted.z +
-                    texture2D( tDiff[3], vPos.yz * repeatScale ).rgb * vAdjusted.w;
+                    texture2D( tDiff[0], pos.yz * repeatScale ).rgb * vAdjusted.x +
+                    texture2D( tDiff[1], pos.yz * repeatScale ).rgb * vAdjusted.y +
+                    texture2D( tDiff[2], pos.yz * repeatScale ).rgb * vAdjusted.z +
+                    texture2D( tDiff[3], pos.yz * repeatScale ).rgb * vAdjusted.w;
 
                 vec3 zaxis = 
-                    texture2D( tDiff[0], vPos.xy * repeatScale ).rgb * vAdjusted.x +
-                    texture2D( tDiff[1], vPos.xy * repeatScale ).rgb * vAdjusted.y +
-                    texture2D( tDiff[2], vPos.xy * repeatScale ).rgb * vAdjusted.z +
-                    texture2D( tDiff[3], vPos.xy * repeatScale ).rgb * vAdjusted.w;
+                    texture2D( tDiff[0], pos.xy * repeatScale ).rgb * vAdjusted.x +
+                    texture2D( tDiff[1], pos.xy * repeatScale ).rgb * vAdjusted.y +
+                    texture2D( tDiff[2], pos.xy * repeatScale ).rgb * vAdjusted.z +
+                    texture2D( tDiff[3], pos.xy * repeatScale ).rgb * vAdjusted.w;
 
                 vec3 yaxis = 
-                    texture2D( tDiff[0], vPos.xz * repeatScale ).rgb * vAdjusted.x +
-                    texture2D( tDiff[1], vPos.xz * repeatScale ).rgb * vAdjusted.y +
-                    texture2D( tDiff[2], vPos.xz * repeatScale ).rgb * vAdjusted.z +
-                    texture2D( tDiff[3], vPos.xz * repeatScale ).rgb * vAdjusted.w;
+                    texture2D( tDiff[0], pos.xz * repeatScale ).rgb * vAdjusted.x +
+                    texture2D( tDiff[1], pos.xz * repeatScale ).rgb * vAdjusted.y +
+                    texture2D( tDiff[2], pos.xz * repeatScale ).rgb * vAdjusted.z +
+                    texture2D( tDiff[3], pos.xz * repeatScale ).rgb * vAdjusted.w;
 
                 return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z, 1.0 );
 

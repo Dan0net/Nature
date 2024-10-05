@@ -287,11 +287,8 @@ export default class VolumetricChunk {
 												
 						pos.applyEuler(eulerInverse)						
 						
-						// pos.applyEuler(new THREE.Euler(0, rot, 0, 'XYZ'))
-						// p = this.drawSphere( pos, radius );
 						p = drawFunc( pos, buildConfiguration )
-						// p = this.drawCube( pos, radius );
-						// console.log(p);
+						
 						this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p );
 						if (val > 0 && p > 0) {
 							this.saveGridPosition( gridPosition, buildConfiguration.material );
@@ -338,8 +335,7 @@ export default class VolumetricChunk {
 		);
 
   		const a = min(max(d.x,d.y), 0.0) + d.max(new THREE.Vector2(0,0)).length();
-
-		return map( a, 0, 1.5, 1, 0, true );
+		return map( a, 0, 0.25, 1, 0, true );
 	}
 
 
