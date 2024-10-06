@@ -24,7 +24,7 @@ export default class TerrainController extends VolumetricTerrain {
 			currentCoord: offset,
 			viewDistance: viewDistance.viewHigh + viewDistance.viewLow,
 			fps: 60,
-			material: terrainMaterial,
+			material: terrainMaterial( app.scene.background ),
 			// material: terrainMaterialBasic,
 			// material: terrainMaterial3D,
 			workers: 1,
@@ -257,33 +257,33 @@ export default class TerrainController extends VolumetricTerrain {
 		if ( underground ) document.querySelector( 'audio' ).setVolume( 0, 1 );
 
 		//render grey background in caves
-		app.player.skyBox.visible = ! underground;
+		// app.player.skyBox.visible = ! underground;
 
 		//lower light intensity
-		app.player.shadowLight.intensity = (
-			underground && app.player.shadowLight.intensity > 0
-		) ? (
-				app.player.shadowLight.intensity - 0.1
-			) : (
-				( app.player.shadowLight.intensity < 1 && ! underground ) ? (
-					app.player.shadowLight.intensity + 0.1
-				) : (
-					app.player.shadowLight.intensity
-				)
-			);
+		// app.player.shadowLight.intensity = (
+		// 	underground && app.player.shadowLight.intensity > 0
+		// ) ? (
+		// 		app.player.shadowLight.intensity - 0.1
+		// 	) : (
+		// 		( app.player.shadowLight.intensity < 1 && ! underground ) ? (
+		// 			app.player.shadowLight.intensity + 0.1
+		// 		) : (
+		// 			app.player.shadowLight.intensity
+		// 		)
+		// 	);
 
 		//lower exposure
-		app.renderer.toneMappingExposure = (
-			underground && app.renderer.toneMappingExposure > 1.5
-		) ? (
-				app.renderer.toneMappingExposure - 0.1
-			) : (
-				( ! underground && app.renderer.toneMappingExposure < app.renderer.toneMappingExposureMax ) ? (
-					app.renderer.toneMappingExposure + 0.1
-				) : (
-					app.renderer.toneMappingExposure
-				)
-			);
+		// app.renderer.toneMappingExposure = (
+		// 	underground && app.renderer.toneMappingExposure > 1.5
+		// ) ? (
+		// 		app.renderer.toneMappingExposure - 0.1
+		// 	) : (
+		// 		( ! underground && app.renderer.toneMappingExposure < app.renderer.toneMappingExposureMax ) ? (
+		// 			app.renderer.toneMappingExposure + 0.1
+		// 		) : (
+		// 			app.renderer.toneMappingExposure
+		// 		)
+		// 	);
 
 	}
 

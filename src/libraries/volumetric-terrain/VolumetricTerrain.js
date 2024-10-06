@@ -215,11 +215,10 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		await Promise.all( promises ).then( data => {
 
 			if ( data.length > 0 ) {
-				console.log('flipping', data.length);
+				// console.log('flipping', data.length);
 
 				for ( let chunkKey of data ) {
 
-					// TODO fix chunk render flickering
 					this.chunks[ chunkKey ].flipMesh();
 
 				}
@@ -433,6 +432,8 @@ export default class VolumetricTerrain extends THREE.Object3D {
 	adjust( center, buildConfiguration, isTemporary ) {
 
 		if ( isTemporary && this.updating !== false ) return;
+
+		// TODO set any chunks not checked in loop to !useTemporaryGrid and flipMesh if they are
 	
 		// TODO simplify
 		const centerChunkCoord = new THREE.Vector3(

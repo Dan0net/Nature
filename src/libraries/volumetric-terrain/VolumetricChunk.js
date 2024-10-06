@@ -209,7 +209,7 @@ export default class VolumetricChunk {
 			mesh.chunk = this;
 			mesh.position.x = this.position.x;
 			mesh.position.z = this.position.z;
-			mesh.material.needsUpdate = true;
+			// mesh.material.needsUpdate = true;
 			// if (!this.useTemporaryGrid) {
 				mesh.castShadow = true;
 				mesh.receiveShadow = true;

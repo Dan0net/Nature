@@ -254,14 +254,14 @@ export default class App {
 		//lights
 		const skyColor = 0xB1E1FF;  // light blue
 		const groundColor = 0xB97A20;  // brownish orange
-		const Hintensity = 0.3;
+		const Hintensity = 0.1;
 		const Hlight = new THREE.HemisphereLight(skyColor, groundColor, Hintensity);
 		this.scene.add(Hlight);
 
 		const Dcolor = 0xFFFFFF;
 		const Dintensity = 2;
 		this.Dlight = new THREE.DirectionalLight(Dcolor, Dintensity);
-		this.Dlight.position.set(-75, 100, -75);
+		this.Dlight.position.set(-75, 100, 75);
 		this.Dlight.target.position.set(0, 20, 0);
 		this.Dlight.castShadow = true;
 		this.Dlight.shadow.camera.zoom = 1;

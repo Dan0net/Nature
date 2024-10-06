@@ -193,23 +193,31 @@ export default class Player extends THREE.Object3D {
 
 
 
-			//add a skybox. This position is updated in the update function
-			this.skyBox = new THREE.Mesh(
-				new THREE.SphereGeometry(
-					startChunk.terrain.chunkSize * 2 * Math.min( startChunk.terrain.viewDistance + 2, 14 ),
-					64,
-					64
-				),
-				new THREE.MeshBasicMaterial( {
-					map: new THREE.TextureLoader().load( './resources/images/background.jpg' ),
-					side: THREE.BackSide
-				} )
-			);
-			this.skyBox.material.map.mapping = THREE.EquirectangularRefractionMapping;
-			this.skyBox.material.map.encoding = THREE.sRGBEncoding;
+			// //add a skybox. This position is updated in the update function
+			// this.skyBox = new THREE.Mesh(
+			// 	new THREE.SphereGeometry(
+			// 		startChunk.terrain.chunkSize * 2 * Math.min( startChunk.terrain.viewDistance + 2, 14 ),
+			// 		64,
+			// 		64
+			// 	),
+			// 	new THREE.MeshBasicMaterial( {
+			// 		map: new THREE.TextureLoader().load( './resources/images/background.jpg' ),
+			// 		side: THREE.BackSide
+			// 	} )
+			// );
+			// this.skyBox.material.map.mapping = THREE.EquirectangularRefractionMapping;
+			// this.skyBox.material.map.encoding = THREE.sRGBEncoding;
 
-			app.scene.add( this.skyBox );
+			// app.scene.add( this.skyBox );
 
+					// env map
+
+			const loader = new THREE.CubeTextureLoader();
+			loader.setPath( 'resources/images/skybox/' );
+			const textureCube = loader.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
+			app.scene.background = textureCube;
+
+			console.log(app.scene.background)
 			app.scene.add(this.buildMarker);
 			this.buildMarker.visible = false;
 
@@ -270,17 +278,18 @@ export default class Player extends THREE.Object3D {
 	}
 
 	moveSkyboxAndLight() {
+		// TODO move light
 
 		//move skybox along with the object/camera
-		this.skyBox.position.copy( this.position );
-		this.skyBox.position.y *= 0.4;
-		this.skyBox.rotation.x += 0.00004;
+		// this.skyBox.position.copy( this.position );
+		// this.skyBox.position.y *= 0.4;
+		// this.skyBox.rotation.x += 0.00004;
 
-		if ( ++ this.cameraTimer > 200 ) {
-			this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
-			this.shadowLight.target.position.copy( this.position );
-			this.cameraTimer = 0;
-		}
+		// if ( ++ this.cameraTimer > 200 ) {
+		// 	this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
+		// 	this.shadowLight.target.position.copy( this.position );
+		// 	this.cameraTimer = 0;
+		// }
 
 	}
 
@@ -722,7 +731,7 @@ export default class Player extends THREE.Object3D {
 	adjustBuildMaterial ( delta ) {
 		this.buildMaterial = (this.buildMaterial + delta + this.maxBuildMaterials) % this.maxBuildMaterials;
 		this.buildConfiguration['material'] = this.buildMaterial;
-		console.log(this.buildPreset, this.buildConfiguration);
+		// console.log('material', this.buildMaterial);
 
 		this.buildConfiguration.needsUpdating = true;
 	}
