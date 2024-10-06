@@ -81,6 +81,7 @@ export default class Player extends THREE.Object3D {
 		this.buildMaterial = 0;
 		this.maxBuildMaterials = 4;
 		console.log(this.buildConfiguration)
+		this.buildCenterPrevious;
 
 		this.buildWireframeGeometry = new THREE.WireframeGeometry(
 			this.buildConfiguration.wireframeGeometry
@@ -768,15 +769,20 @@ export default class Player extends THREE.Object3D {
 			))
 		}
 
-		this.buildWireframe.scale.copy( new THREE.Vector3(1,1,1).multiplyScalar(this.buildConfiguration.constructive ? 1.1 : 0.9) )
-		this.buildWireframe.position.copy( center )
-		this.buildWireframe.setRotationFromEuler( this.buildConfiguration.rotation )
+		// if (!this.buildCenterPrevious || !center.equals(this.buildCenterPrevious) || isPlacing){
 
-		//tell chunk to change the terrain
-		//TODO move this to TerrainController
-		// this.intersectPoint.object.chunk.adjust( center, this.buildConfiguration, val, true, !isPlacing );
-		app.terrainController.build( center, this.buildConfiguration, !isPlacing );
-		app.terrainController.updateInstancedObjects();
+			this.buildWireframe.scale.copy( new THREE.Vector3(1,1,1).multiplyScalar(this.buildConfiguration.constructive ? 1.1 : 0.9) )
+			this.buildWireframe.position.copy( center )
+			this.buildWireframe.setRotationFromEuler( this.buildConfiguration.rotation )
+
+			//tell chunk to change the terrain
+			//TODO move this to TerrainController
+			// this.intersectPoint.object.chunk.adjust( center, this.buildConfiguration, val, true, !isPlacing );
+			app.terrainController.adjust( center, this.buildConfiguration, !isPlacing );
+			app.terrainController.updateInstancedObjects();
+
+			this.buildCenterPrevious = center;
+		// }
 
 	}
 

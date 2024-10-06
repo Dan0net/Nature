@@ -49,80 +49,6 @@ export default class Chunk extends VolumetricChunk {
 
 	}
 
-
-	generateMesh( data ) {
-
-		const {
-			indices,
-			vertices,
-			underground,
-			topindices,
-			topvertices,
-			adjusted
-		} = data;
-
-		const geo = new THREE.BufferGeometry();
-		const topgeo = new THREE.BufferGeometry();
-
-		geo.setIndex( new THREE.BufferAttribute( indices, 1 ) );
-		geo.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-		// geo.setAttribute( 'force_stone', new THREE.Float32BufferAttribute( underground, 1 ) );
-		geo.setAttribute( 'adjusted', new THREE.BufferAttribute( adjusted, 4 ) );
-		geo.computeVertexNormals();
-		geo.computeBoundsTree = computeBoundsTree;
-		geo.disposeBoundsTree = disposeBoundsTree;
-		geo.computeBoundsTree();
-
-
-		// topgeo.setIndex( new THREE.BufferAttribute( topindices, 1 ) );
-		// topgeo.setAttribute( 'position', new THREE.Float32BufferAttribute( topvertices, 3 ) );
-		// topgeo.computeVertexNormals();
-
-		//create new mesh with preapp.loadedmaterial
-		this.meshBuffer.mesh = new THREE.Mesh( geo, this.terrain.material );
-		this.meshBuffer.mesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );
-		this.meshBuffer.mesh.raycast = acceleratedRaycast;
-		this.meshBuffer.mesh.chunk = this;
-		this.meshBuffer.mesh.position.x = this.position.x;
-		this.meshBuffer.mesh.position.z = this.position.z;
-		this.meshBuffer.mesh.castShadow = true;
-		this.meshBuffer.mesh.receiveShadow = true;
-		this.meshBuffer.mesh.material.needsUpdate = true;
-
-		this.meshBuffer.mesh.updateWorldMatrix();
-		this.meshBuffer.mesh.matrixAutoUpdate = false;
-		this.meshBuffer.mesh.name = "terrain";
-
-		// this.meshBuffer.LODMesh = new THREE.Mesh( topgeo, this.terrain.material );
-		// this.meshBuffer.LODMesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );
-		// this.meshBuffer.LODMesh.position.x = this.position.x;
-		// this.meshBuffer.LODMesh.position.z = this.position.z;
-
-		// this.meshBuffer.LODMesh.updateWorldMatrix();
-		// this.meshBuffer.LODMesh.matrixAutoUpdate = false;
-		// this.meshBuffer.LODMesh.name = "terrainTop";
-	}
-
-	showLevel( level ) {
-
-		if ( level ) this.lodLevel = level;
-
-		if ( this.lodLevel == 1 ) {
-
-			if ( this.mesh ) this.terrain.add( this.mesh );
-			if ( this.meshTemp ) this.terrain.add( this.meshTemp );
-			// if ( this.LODMesh ) this.terrain.remove( this.LODMesh );
-
-		} else {
-
-			if ( this.mesh ) this.terrain.remove( this.mesh );
-			if ( this.meshTemp ) this.terrain.remove( this.meshTemp );
-			// if ( this.LODMesh ) this.terrain.add( this.LODMesh );
-
-		}
-
-	}
-
 	generateGrid() {
 
 		return new Promise( resolve => {
@@ -136,15 +62,16 @@ export default class Chunk extends VolumetricChunk {
 				async ( { data } ) => {
 
 					this.grid = data.grid;
+					this.gridTemp = new Float32Array(data.grid);
 					this.terrainHeights = data.terrainHeights;
 
 					if ( this.terrain.DB ) {
 
 						const data = await this.terrain.DB.getAll( this.chunkKey );
-						for ( let { index, value } of data ) {
+						for ( let { index, value, adjust } of data ) {
 
 							this.grid[ index ] = value;
-							this.adjustedIndices[ index ] = 1;
+							this.adjustedIndices[ index ] = adjust;
 
 						}
 
@@ -183,21 +110,12 @@ export default class Chunk extends VolumetricChunk {
 		a[ index ] = materialInd;
 
 		if ( !this.useTemporaryGrid) {
-			if ( this.terrain.DB ) this.adjustedBuffer.push( { index, value: this.grid[ index ] } );
+			if ( this.terrain.DB ) this.adjustedBuffer.push( { 
+				index, 
+				value: this.grid[ index ], 
+				adjust: this.adjustedIndices [index] 
+			} );
 		}
-
-	}
-
-
-	adjust( center, buildConfiguration, val, checkNeighbors, useTemporaryGrid ) {
-
-		if ( useTemporaryGrid ) {
-			this.adjustedIndicesTemp = new Float32Array( this.adjustedIndices );
-		}
-
-		super.adjust( center, buildConfiguration, val, checkNeighbors, useTemporaryGrid );
-
-		this.terrain.adjustInstancedObjects( this.chunkKey, center, buildConfiguration.size.x );
 
 	}
 

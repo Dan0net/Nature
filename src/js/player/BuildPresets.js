@@ -65,7 +65,7 @@ export default [
         align: 'center',
         rotation: new THREE.Euler(Math.PI/2,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.CylinderGeometry(1, 1, 4, 8, 4)
+        wireframeGeometry: new THREE.CylinderGeometry(0.5, 0.5, 4, 8, 4)
     },
     {
         name: 'block',
@@ -82,12 +82,12 @@ export default [
         name: 'big cylinder',
         shape: 'cylinder',
         constructive: true,
-        size: new THREE.Vector3(8, 16, 0),
+        size: new THREE.Vector3(8, 8, 0),
         material: 1,
         align: 'base',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.CylinderGeometry(8, 8, 16, 8, 4)
+        wireframeGeometry: new THREE.CylinderGeometry(4, 4, 4, 8, 4)
     },
     {
         name: 'small cylinder',
@@ -98,6 +98,6 @@ export default [
         align: 'base',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.CylinderGeometry(1, 1, 4, 8, 4)
+        wireframeGeometry: new THREE.CylinderGeometry(0.5, 0.5, 4, 8, 4)
     }
 ]

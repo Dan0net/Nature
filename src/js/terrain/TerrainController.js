@@ -27,7 +27,7 @@ export default class TerrainController extends VolumetricTerrain {
 			material: terrainMaterial,
 			// material: terrainMaterialBasic,
 			// material: terrainMaterial3D,
-			workers: 4,
+			workers: 1,
 			// gridWorkerScript: './resources/js/gridworker/GridWorker.js',
 			gridWorkerScript: './resources/js/gridworker/GridWorker-flat.js',
 			meshWorkerScript: './resources/js/meshworker/MeshWorker.js',
@@ -64,7 +64,7 @@ export default class TerrainController extends VolumetricTerrain {
 			.then( () => {
 
 				this.updateCastChunkTerrainArray( this.currentCoord );
-				this.updateChunkLODs();
+				// this.updateChunkLODs();
 				callback( this );
 
 			} );
@@ -289,12 +289,12 @@ export default class TerrainController extends VolumetricTerrain {
 	updatecurrentCoord( currentCoord, newChunks ) {
 
 		super.updatecurrentCoord( currentCoord, newChunks );
-		this.updateInstancedObjects();
+		// this.updateInstancedObjects();
 
 		if ( newChunks ) {
 
-			this.updateChunkLODs();
-			this.updateInstancedObjects( true );
+			// this.updateChunkLODs();
+			// this.updateInstancedObjects( true );
 
 			const chunkKey = this.getChunkKey( this.currentCoord );
 			// const treeAmount = ( this.instancedObjects.Tree.cachedData[ chunkKey ]?.tree.length || 0 );

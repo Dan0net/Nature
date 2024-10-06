@@ -68,7 +68,6 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		for ( let chunk in this.chunks ) {
 
 			this.chunks[ chunk ].dispose();
-
 		}
 		this.chunks = {};
 
@@ -212,6 +211,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		await Promise.all( promises ).then( data => {
 
 			if ( data.length > 0 ) {
+				console.log('flipping', data.length);
 
 				for ( let chunkKey of data ) {
 
@@ -413,17 +413,23 @@ export default class VolumetricTerrain extends THREE.Object3D {
 	}
 
 	                                               
-	// 88                        88  88           88  
-	// 88                        ""  88           88  
-	// 88                            88           88  
-	// 88,dPPYba,   88       88  88  88   ,adPPYb,88  
-	// 88P'    "8a  88       88  88  88  a8"    `Y88  
-	// 88       d8  88       88  88  88  8b       88  
-	// 88b,   ,a8"  "8a,   ,a88  88  88  "8a,   ,d88  
-	// 8Y"Ybbd8"'    `"YbbdP'Y8  88  88   `"8bbdP"Y8  
+                                                              
+	//                      88  88                                   
+	//                      88  ""                            ,d     
+	//                      88                                88     
+	// ,adPPYYba,   ,adPPYb,88  88  88       88  ,adPPYba,  MM88MMM  
+	// ""     `Y8  a8"    `Y88  88  88       88  I8[    ""    88     
+	// ,adPPPPP88  8b       88  88  88       88   `"Y8ba,     88     
+	// 88,    ,88  "8a,   ,d88  88  "8a,   ,a88  aa    ]8I    88,    
+	// `"8bbdP"Y8   `"8bbdP"Y8  88   `"YbbdP'Y8  `"YbbdP"'    "Y888  
+	//                         ,88                                   
+	//                       888P"                                   
+		
+	adjust( center, buildConfiguration, isTemporary ) {
+
+		if ( isTemporary && this.updating !== false ) return;
 	
-	build( center, buildConfiguration, isTemporary ) {
-	
+		// TODO simplify
 		const centerChunkCoord = new THREE.Vector3(
 			center.x / ( this.gridSize.x - CHUNK_OVERLAP ) / this.terrainScale.x,
 			0,

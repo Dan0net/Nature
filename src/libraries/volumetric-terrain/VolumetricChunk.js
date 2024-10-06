@@ -1,11 +1,11 @@
+import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from '../../libraries/raycast-bvh/RaycastBVH';
 import * as THREE from 'three';
 
 const CHUNK_OVERLAP = 2;
 
 export default class VolumetricChunk {
 
-	constructor( x, z, terrain, callback ) {
-
+	constructor( x, z, terrain, callback ) {	
 		//parent
 		this.terrain = terrain;
 		this.needsUpdate = false;
@@ -26,7 +26,11 @@ export default class VolumetricChunk {
 		this.gridTemp;
 		this.useTemporaryGrid = false;
 		this.terrainHeights;
-		this.meshBuffer = {};
+		
+		this.meshObjs = {};
+		this.mesh;
+		this.meshTempObjs = {};
+		this.meshTemp;
 
 		//initialize the grid
 		this.generateGrid()
@@ -50,32 +54,27 @@ export default class VolumetricChunk {
 
 	flipMesh() {
 
-		this.dispose();
+		if (this.mesh === undefined && this.meshObjs.mesh !== undefined) {
+			this.mesh = this.meshObjs.mesh
+			this.terrain.add(this.mesh);
+			// console.log(this.offset, this.mesh)
+		}
 
-		if ( this.meshBuffer.mesh ) {
-
-			if ( this.useTemporaryGrid ) {
-				this.meshTemp = this.meshBuffer.mesh
-				this.meshTemp.castShadow = true;
-				this.meshTemp.receiveShadow = true;
-			} else {
-				this.mesh = this.meshBuffer.mesh
-				this.mesh.castShadow = true;
-				this.mesh.receiveShadow = true;
-			}
+		if (this.meshTemp === undefined && this.meshTempObjs.mesh !== undefined) {
+			this.meshTemp = this.meshTempObjs.mesh
+			// console.log(this.meshTemp, this.meshTempObjs)
+			this.terrain.add(this.meshTemp);
+			// console.log(this.offset, 't')
 		}
 
 		if ( this.useTemporaryGrid ) {
-			this.terrain.add( this.meshTemp );
+			console.log('temp flip')
 			this.mesh.visible = false;
+			this.meshTemp.visible = true;
 		} else {
 			this.mesh.visible = true;
+			if (this.meshTemp) this.meshTemp.visible = false;
 		}
-		this.terrain.add( this.mesh );
-
-		this.LODMesh = this.meshBuffer.LODMesh;
-		this.meshBuffer = {};
-
 	}
 
 	//                              .o8                .
@@ -126,7 +125,7 @@ export default class VolumetricChunk {
 				async ( { data } ) => {
 
 					this.grid = data.grid;
-					this.gridTemp = new Float32Array( data.grid );
+					this.gridTemp = new Float32Array(data.grid);
 					this.terrainHeights = data.terrainHeights;
 
 					resolve();
@@ -180,33 +179,78 @@ export default class VolumetricChunk {
 
 	generateMesh( data ) {
 
-		this.dispose();
-
 		const {
+			indices,
 			vertices,
-			indices
+			adjusted
 		} = data;
 
-		//create new geometry
-		const geo = new THREE.BufferGeometry();
+		const meshObjs = this.useTemporaryGrid ? this.meshTempObjs : this.meshObjs;
 
-		geo.setIndex( new THREE.BufferAttribute( indices, 1 ) );
-		geo.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-		geo.computeVertexNormals();
+		if ( meshObjs.mesh === undefined ) {
+			//create new geometry
+			const buffer = new THREE.BufferGeometry();
 
-		//create new mesh with preloaded material
-		this.meshBuffer.mesh = new THREE.Mesh( geo, this.terrain.material );
-		this.meshBuffer.mesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );
-		this.meshBuffer.mesh.chunk = this;
-		this.meshBuffer.mesh.position.x = this.position.x;
-		this.meshBuffer.mesh.position.z = this.position.z;
-		this.meshBuffer.mesh.material.needsUpdate = true;
+			//create new mesh with preloaded material
+			const mesh = new THREE.Mesh( buffer, this.terrain.material );
+			mesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );
+			mesh.chunk = this;
+			mesh.position.x = this.position.x;
+			mesh.position.z = this.position.z;
+			mesh.material.needsUpdate = true;
+			if (!this.useTemporaryGrid) {
+				mesh.castShadow = true;
+				mesh.receiveShadow = true;
+			}
 
-		this.meshBuffer.mesh.updateWorldMatrix();
-		this.meshBuffer.mesh.matrixAutoUpdate = false;
+			mesh.updateWorldMatrix();
+			mesh.matrixAutoUpdate = false;
+			
+			buffer.computeBoundsTree = computeBoundsTree;
+			buffer.disposeBoundsTree = disposeBoundsTree;
 
+			Object.assign(meshObjs, {
+				buffer: buffer,
+				mesh: mesh
+			});
+		}
+
+		meshObjs.buffer = new THREE.BufferGeometry();
+		meshObjs.buffer.computeBoundsTree = computeBoundsTree;
+		meshObjs.buffer.disposeBoundsTree = disposeBoundsTree;
+
+		meshObjs.mesh.geometry = meshObjs.buffer
+
+		const indexBufferAttribute = new THREE.BufferAttribute( indices, 1 )
+		meshObjs.buffer.setIndex( indexBufferAttribute );
+
+		const positionBufferAttribute = new THREE.Float32BufferAttribute( vertices, 3 )
+		meshObjs.buffer.setAttribute( 'position', positionBufferAttribute );
+		
+		const adjustedBufferAttribute = new THREE.BufferAttribute( adjusted, 4 )
+		meshObjs.buffer.setAttribute( 'adjusted', adjustedBufferAttribute );
+		
+		// meshObjs.indices.set(indices)
+		indexBufferAttribute.needsUpdate = true;
+
+		// meshObjs.vertices.set(vertices)
+		positionBufferAttribute.needsUpdate = true;
+
+		// meshObjs.adjusted.set(adjusted)
+		adjustedBufferAttribute.needsUpdate = true;
+
+		meshObjs.buffer.computeVertexNormals();
+		meshObjs.buffer.computeBoundsTree();
+
+		Object.assign(meshObjs, {
+			indices: indices,
+			indexBufferAttribute: indexBufferAttribute,
+			vertices: vertices,
+			positionBufferAttribute: positionBufferAttribute,
+			adjusted: adjusted,
+			adjustedBufferAttribute: adjustedBufferAttribute
+		});
 	}
-
 
 
 	//                 .o8      o8o                          .
@@ -230,11 +274,7 @@ export default class VolumetricChunk {
 	// "Y88888P'
 
 
-	adjust( center, buildConfiguration, useTemporaryGrid ) {
-		
-		// if ( this.terrain.updating !== false ) return;
-
-		// if (!useTemporaryGrid) console.log('placing!');
+	adjust( center, buildConfiguration, useTemporaryGrid ) {		
 
 		const localCenter = center.clone()
 			.sub( this.mesh.position )
@@ -243,12 +283,11 @@ export default class VolumetricChunk {
 
 		this.useTemporaryGrid = useTemporaryGrid;
 		if ( useTemporaryGrid ) {
-			this.gridTemp = new Float32Array( this.grid );
+			this.gridTemp.set(this.grid)
+			this.adjustedIndicesTemp.set(this.adjustedIndices);
 		}
 
 		this.adjustGrid( localCenter, buildConfiguration );
-
-		// if ( checkNeighbors ) this.adjustNeighbors( center, localCenter, buildConfiguration, value );
 	}
 
 	async adjustGrid( center, buildConfiguration ) {
@@ -309,7 +348,7 @@ export default class VolumetricChunk {
 		let d = pos.length() - buildConfiguration.size.x;
 		
 		// TODO Fix sphere weight
-		return map( d, -0.1, 0.1, 1, 0, true );
+		return map( d, 0, 1.5, 1, 0, true );
 	}
 
 	drawCube ( pos, buildConfiguration ) {
@@ -335,62 +374,8 @@ export default class VolumetricChunk {
 		);
 
   		const a = min(max(d.x,d.y), 0.0) + d.max(new THREE.Vector2(0,0)).length();
-		return map( a, 0, 0.25, 1, 0, true );
+		return map( a, 0, 1.1, 1, 0, true );
 	}
-
-
-
-	//                 .o8      o8o                          .
-	//                "888      `"'                        .o8
-	//  .oooo.    .oooo888     oooo oooo  oooo   .oooo.o .o888oo
-	// `P  )88b  d88' `888     `888 `888  `888  d88(  "8   888
-	//  .oP"888  888   888      888  888   888  `"Y88b.    888
-	// d8(  888  888   888      888  888   888  o.  )88b   888 .
-	// `Y888""8o `Y8bod88P"     888  `V88V"V8P' 8""888P'   "888"
-	//                          888
-	//                      .o. 88P
-	//                      `Y888P
-	//                        o8o             oooo         .o8
-	//                        `"'             `888        "888
-	// ooo. .oo.    .ooooo.  oooo   .oooooooo  888 .oo.    888oooo.   .ooooo.  oooo d8b  .oooo.o
-	// `888P"Y88b  d88' `88b `888  888' `88b   888P"Y88b   d88' `88b d88' `88b `888""8P d88(  "8
-	//  888   888  888ooo888  888  888   888   888   888   888   888 888   888  888     `"Y88b.
-	//  888   888  888    .o  888  `88bod8P'   888   888   888   888 888   888  888     o.  )88b
-	// o888o o888o `Y8bod8P' o888o `8oooooo.  o888o o888o  `Y8bod8P' `Y8bod8P' d888b    8""888P'
-	//                             d"     YD
-	//                             "Y88888P'
-
-
-	// adjustNeighbors( center, localCenter, buildConfiguration, val ) {
-
-	// 	const extraMargin = 2;
-	// 	let loopRadius = buildConfiguration.size.x + 4;
-
-	// 	for (var i = -1; i <=1; i++){
-	// 		for (var j = -1; j <=1; j++){
-	// 			if (i ===0 && j === 0) continue;
-
-	// 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x + i, z: this.offset.z + j } );
-	// 			const chunk = this.terrain.chunks[ nChunk ];
-
-	// 			if ( !chunk ) continue;
-
-	// 			if (
-	// 				( ( i > 0 ? this.terrain.gridSize.x : 0 ) + ( localCenter.x * -i ) - loopRadius - extraMargin <= 0 ) &&
-	// 				( ( j > 0 ? this.terrain.gridSize.z : 0 ) + ( localCenter.z * -j ) - loopRadius - extraMargin <= 0 )
-	// 			 ) {
-	// 				if ( true ) {
-	// 					chunk.adjust( center, buildConfiguration, val, false, this.useTemporaryGrid );
-	// 				}
-	// 			} else if ( chunk.useTemporaryGrid ) {
-	// 				console.log(chunk.chunkKey, 'flip off')
-	// 				chunk.useTemporaryGrid = false;
-	// 				chunk.flipMesh();
-	// 			}
-	// 		}
-	// 	}
-
-	// }
 
 
 	//  .o88o.                                       .    o8o
@@ -457,18 +442,15 @@ export default class VolumetricChunk {
 
 		if ( this.mesh ) {
 			// TODO fix clean up
-			// this.mesh.geometry.dispose();
-			this.terrain.remove( this.mesh );
-			// this.mesh = undefined;
-
+			this.terrain.remove(this.mesh)
+			this.mesh.geometry.dispose();
+			this.mesh = undefined;
 		}
 
 		if ( this.meshTemp ) {
-
+			this.terrain.remove(this.meshTemp);
 			this.meshTemp.geometry.dispose();
-			this.terrain.remove( this.meshTemp );
 			this.meshTemp = undefined;
-
 		}
 
 	}
