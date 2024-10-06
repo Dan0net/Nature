@@ -215,7 +215,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		await Promise.all( promises ).then( data => {
 
 			if ( data.length > 0 ) {
-				// console.log('flipping', data.length);
+				console.log('flipping', data.length);
 
 				for ( let chunkKey of data ) {
 

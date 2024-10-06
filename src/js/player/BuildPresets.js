@@ -13,15 +13,15 @@ export default [
         wireframeGeometry: new THREE.BoxGeometry( 6, 6, 0.5 ),
     },
     {
-        name: 'floor',
-        shape: 'cube',
-        constructive: true,
-        size: new THREE.Vector3(4, 0.25, 4),
-        material: 2,
-        align: 'base',
+        name: 'blob carve',
+        shape: 'sphere',
+        constructive: false,
+        size: new THREE.Vector3(4, 0, 0),
+        material: 1,
+        align: 'center',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.BoxGeometry( 4, 0.5, 4 )
+        wireframeGeometry: new THREE.SphereGeometry(2, 4, 4)
     },
     {
         name: 'blob',
@@ -35,15 +35,15 @@ export default [
         wireframeGeometry: new THREE.SphereGeometry(2, 4, 4)
     },
     {
-        name: 'blob carve',
-        shape: 'sphere',
-        constructive: false,
-        size: new THREE.Vector3(4, 0, 0),
-        material: 1,
-        align: 'center',
+        name: 'floor',
+        shape: 'cube',
+        constructive: true,
+        size: new THREE.Vector3(4, 0.25, 4),
+        material: 2,
+        align: 'base',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.SphereGeometry(2, 4, 4)
+        wireframeGeometry: new THREE.BoxGeometry( 4, 0.5, 4 )
     },
     {
         name: 'square window',

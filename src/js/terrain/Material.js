@@ -33,24 +33,55 @@ woodtex.encoding = THREE.sRGBEncoding;
 
 grasstex.minFilter = THREE.NearestFilter;
 
+// create a buffer with color data
+const width = 512;
+const height = 512;
+const depth = 100;
+
+const size = width * height;
+const data = new Uint8Array( 4 * size * depth );
+
+for ( let i = 0; i < depth; i ++ ) {
+	const color = new THREE.Color( Math.random(), Math.random(), Math.random() );
+	const r = Math.floor( color.r * 255 );
+	const g = Math.floor( color.g * 255 );
+	const b = Math.floor( color.b * 255 );
+
+	for ( let j = 0; j < size; j ++ ) {
+		const stride = ( i * size + j ) * 4;
+		data[ stride ] = r;
+		data[ stride + 1 ] = g;
+		data[ stride + 2 ] = b;
+		data[ stride + 3 ] = 255;
+	}
+}
+
+// used the buffer to create a DataArrayTexture
+const texture = new THREE.DataArrayTexture( data, width, height, depth );
+texture.needsUpdate = true;
+
 const terrainMaterial = new THREE.MeshStandardMaterial( {
 	// dithering: false,
-	map: rocktex, // enables UV's in shader
+	map: texture, // enables UV's in shader
+    glslVersion: THREE.GLSL3
 } );
 terrainMaterial.onBeforeCompile = ( shader ) => {
 
 	shader.uniforms.tDiff = {
-		value: [
-			rocktex,
-			grasstex,
-			dirttex,
-            woodtex
-		]
+		// value: [
+		// 	rocktex,
+		// 	grasstex,
+		// 	dirttex,
+        //     woodtex
+		// ]
+        value: texture
 	};
 
 	shader.vertexShader = `
-        attribute vec4 adjusted;
-        varying vec4 vAdjusted;
+        attribute vec3 adjusted;
+        attribute vec3 bary;
+        flat out vec3 vAdjusted;
+        varying vec3 vBary;
         varying vec3 vPos;
         varying vec3 vNormal2;
     ` + shader.vertexShader
@@ -61,14 +92,17 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
             vPos = vec3( worldPosition );
             vNormal2 = normal;
             vAdjusted = adjusted;
+            vBary = bary;
             `
 		);
 
 	shader.fragmentShader = `
-        uniform sampler2D tDiff[4];
+        precision highp sampler2DArray;
+        uniform sampler2DArray tDiff;
         varying vec3 vPos;
         varying vec3 vNormal2;
-        varying vec4 vAdjusted;
+        flat in vec3 vAdjusted;
+        varying vec3 vBary;
     ` + shader.fragmentShader
 		.replace(
 			'#include <map_pars_fragment>',
@@ -94,22 +128,19 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
                 vec3 blending = getTriPlanarBlend( vNormal2 );
                 
                 vec3 xaxis = 
-                    texture2D( tDiff[0], pos.yz * repeatScale ).rgb * vAdjusted.x +
-                    texture2D( tDiff[1], pos.yz * repeatScale ).rgb * vAdjusted.y +
-                    texture2D( tDiff[2], pos.yz * repeatScale ).rgb * vAdjusted.z +
-                    texture2D( tDiff[3], pos.yz * repeatScale ).rgb * vAdjusted.w;
+                    texture( tDiff, vec3(pos.yz * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
+                    texture( tDiff, vec3(pos.yz * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
+                    texture( tDiff, vec3(pos.yz * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z;
 
                 vec3 zaxis = 
-                    texture2D( tDiff[0], pos.xy * repeatScale ).rgb * vAdjusted.x +
-                    texture2D( tDiff[1], pos.xy * repeatScale ).rgb * vAdjusted.y +
-                    texture2D( tDiff[2], pos.xy * repeatScale ).rgb * vAdjusted.z +
-                    texture2D( tDiff[3], pos.xy * repeatScale ).rgb * vAdjusted.w;
+                    texture( tDiff, vec3(pos.xy * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
+                    texture( tDiff, vec3(pos.xy * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
+                    texture( tDiff, vec3(pos.xy * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z;
 
                 vec3 yaxis = 
-                    texture2D( tDiff[0], pos.xz * repeatScale ).rgb * vAdjusted.x +
-                    texture2D( tDiff[1], pos.xz * repeatScale ).rgb * vAdjusted.y +
-                    texture2D( tDiff[2], pos.xz * repeatScale ).rgb * vAdjusted.z +
-                    texture2D( tDiff[3], pos.xz * repeatScale ).rgb * vAdjusted.w;
+                    texture( tDiff, vec3(pos.xz * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
+                    texture( tDiff, vec3(pos.xz * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
+                    texture( tDiff, vec3(pos.xz * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z;
 
                 return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z, 1.0 );
 

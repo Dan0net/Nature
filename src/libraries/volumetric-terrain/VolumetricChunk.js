@@ -54,24 +54,30 @@ export default class VolumetricChunk {
 
 	flipMesh() {
 
-		if (this.mesh === undefined && this.meshObjs.mesh !== undefined) {
-			this.mesh = this.meshObjs.mesh
-			this.terrain.add(this.mesh);
-			// console.log(this.offset, this.mesh)
-		}
+		// if (this.mesh === undefined && this.meshObjs.mesh !== undefined) {
+		// 	this.mesh = this.meshObjs.mesh
+		// 	this.terrain.add(this.mesh);
+		// 	// console.log(this.offset, this.mesh)
+		// }
 
-		if (this.meshTemp === undefined && this.meshTempObjs.mesh !== undefined) {
-			this.meshTemp = this.meshTempObjs.mesh
-			// console.log(this.meshTemp, this.meshTempObjs)
-			this.terrain.add(this.meshTemp);
-			// console.log(this.offset, 't')
-		}
+		// if (this.meshTemp === undefined && this.meshTempObjs.mesh !== undefined) {
+		// 	this.meshTemp = this.meshTempObjs.mesh
+		// 	// console.log(this.meshTemp, this.meshTempObjs)
+		// 	this.terrain.add(this.meshTemp);
+		// 	// console.log(this.offset, 't')
+		// }
 
 		if ( this.useTemporaryGrid ) {
 			// console.log('temp flip')
+			this.meshTemp.geometry.dispose();
+			this.meshTemp.geometry = this.meshTempObjs.buffer;
+
 			this.meshTemp.visible = true;
 			this.mesh.visible = false;
 		} else {
+			this.mesh.geometry.dispose();
+			this.mesh.geometry = this.meshObjs.buffer;
+
 			this.mesh.visible = true;
 			if (this.meshTemp) this.meshTemp.visible = false;
 		}
@@ -182,15 +188,18 @@ export default class VolumetricChunk {
 		const {
 			indices,
 			vertices,
-			adjusted
+			adjusted,
+			bary
 		} = data;
 
 		const meshObjs = this.useTemporaryGrid ? this.meshTempObjs : this.meshObjs;
 
-		if ( meshObjs.mesh === undefined ) {
-			//create new geometry
-			const buffer = new THREE.BufferGeometry();
+		//create new geometry
+		const buffer = new THREE.BufferGeometry();
+		buffer.computeBoundsTree = computeBoundsTree;
+		buffer.disposeBoundsTree = disposeBoundsTree;
 
+		if ( meshObjs.mesh === undefined ) {
 			//create new mesh with preloaded material
 			const mesh = new THREE.Mesh( 
 				buffer, 
@@ -208,30 +217,35 @@ export default class VolumetricChunk {
 
 			mesh.updateWorldMatrix();
 			mesh.matrixAutoUpdate = false;
-			
-			buffer.computeBoundsTree = computeBoundsTree;
-			buffer.disposeBoundsTree = disposeBoundsTree;
 
+			if ( this.useTemporaryGrid ) {
+				this.meshTemp = mesh;
+				this.terrain.add(this.meshTemp);
+			} else {
+				this.mesh = mesh;
+				this.terrain.add(this.mesh);
+			}
+
+			this.terrain.add(this.mesh);
+			
 			Object.assign(meshObjs, {
-				buffer: buffer,
 				mesh: mesh
 			});
 		}
 
-		meshObjs.buffer = new THREE.BufferGeometry();
-		meshObjs.buffer.computeBoundsTree = computeBoundsTree;
-		meshObjs.buffer.disposeBoundsTree = disposeBoundsTree;
-
-		meshObjs.mesh.geometry = meshObjs.buffer
+		// meshObjs.mesh.geometry = meshObjs.buffer
 
 		const indexBufferAttribute = new THREE.BufferAttribute( indices, 1 )
-		meshObjs.buffer.setIndex( indexBufferAttribute );
+		buffer.setIndex( indexBufferAttribute );
 
 		const positionBufferAttribute = new THREE.Float32BufferAttribute( vertices, 3 )
-		meshObjs.buffer.setAttribute( 'position', positionBufferAttribute );
+		buffer.setAttribute( 'position', positionBufferAttribute );
 		
-		const adjustedBufferAttribute = new THREE.BufferAttribute( adjusted, 4 )
-		meshObjs.buffer.setAttribute( 'adjusted', adjustedBufferAttribute );
+		const adjustedBufferAttribute = new THREE.BufferAttribute( adjusted, 3 )
+		buffer.setAttribute( 'adjusted', adjustedBufferAttribute );
+
+		const baryBufferAttribute = new THREE.BufferAttribute( bary, 3 )
+		buffer.setAttribute( 'bary', baryBufferAttribute );
 		
 		// meshObjs.indices.set(indices)
 		indexBufferAttribute.needsUpdate = true;
@@ -241,17 +255,22 @@ export default class VolumetricChunk {
 
 		// meshObjs.adjusted.set(adjusted)
 		adjustedBufferAttribute.needsUpdate = true;
+		
+		baryBufferAttribute.needsUpdate = true;
 
-		meshObjs.buffer.computeVertexNormals();
-		meshObjs.buffer.computeBoundsTree();
+		buffer.computeVertexNormals();
+		buffer.computeBoundsTree();
 
 		Object.assign(meshObjs, {
+			buffer: buffer,
 			indices: indices,
 			indexBufferAttribute: indexBufferAttribute,
 			vertices: vertices,
 			positionBufferAttribute: positionBufferAttribute,
 			adjusted: adjusted,
-			adjustedBufferAttribute: adjustedBufferAttribute
+			adjustedBufferAttribute: adjustedBufferAttribute,
+			bary: bary,
+			baryBufferAttribute: baryBufferAttribute
 		});
 	}
 
@@ -448,12 +467,14 @@ export default class VolumetricChunk {
 			this.terrain.remove(this.mesh)
 			this.mesh.geometry.dispose();
 			this.mesh = undefined;
+			this.meshObjs.buffer.dispose();
 		}
 
 		if ( this.meshTemp ) {
 			this.terrain.remove(this.meshTemp);
 			this.meshTemp.geometry.dispose();
 			this.meshTemp = undefined;
+			this.meshTempObjs.buffer.dispose();
 		}
 
 	}
