@@ -229,16 +229,16 @@ const terrainMaterial= (envmap) => {
 
     const mat = new THREE.MeshPhongMaterial( {
         map: aoMap, // enables UV's in shader
-        normalMap: normalMap,
-        aoMap: aoMap,
-        // displacementMap: displacementMap,
-        roughnessMap: roughnessMap,
-        envmap: envmap,
-        // glslVersion: THREE.GLSL3
-        // normalScale: new THREE.Vector2(2, 2)
-        specular: new THREE.Color(.5,.5,.5),
-        reflectivity: 1.0,
-        combine: THREE.MixOperation
+        // normalMap: normalMap,
+        // aoMap: aoMap,
+        // // displacementMap: displacementMap,
+        // roughnessMap: roughnessMap,
+        // envmap: envmap,
+        // // glslVersion: THREE.GLSL3
+        // // normalScale: new THREE.Vector2(2, 2)
+        // specular: new THREE.Color(.5,.5,.5),
+        // reflectivity: 1.0,
+        // combine: THREE.MixOperation
     } );
     mat.onBeforeCompile = ( shader ) => {
 

@@ -1,3 +1,4 @@
+import BuildPresets from '../../js/player/BuildPresets';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from '../../libraries/raycast-bvh/RaycastBVH';
 import * as THREE from 'three';
 
@@ -5,22 +6,26 @@ const CHUNK_OVERLAP = 2;
 
 export default class VolumetricChunk {
 
-	constructor( x, z, terrain, callback ) {	
+	constructor( x, y, z, terrain, callback ) {	
 		//parent
 		this.terrain = terrain;
 		this.needsUpdate = false;
 
 		//offset coordinates
-		this.offset = { x, z };
+		this.offset = { x, y, z };
 		this.chunkKey = this.terrain.getChunkKey( this.offset );
 
+		console.log(this.chunkKey)
 
 		//terrain generation vars
 		this.position = new THREE.Vector3(
 			this.offset.x * ( this.terrain.gridSize.x - CHUNK_OVERLAP ) * this.terrain.terrainScale.x,
-			0,
+			this.offset.y * ( this.terrain.gridSize.y - CHUNK_OVERLAP ) * this.terrain.terrainScale.y,
 			this.offset.z * ( this.terrain.gridSize.z - CHUNK_OVERLAP ) * this.terrain.terrainScale.z
 		);
+
+		console.log(this.position)
+
 
 		this.grid;
 		this.gridTemp;
@@ -67,14 +72,14 @@ export default class VolumetricChunk {
 		// 	// console.log(this.offset, 't')
 		// }
 
-		if ( this.useTemporaryGrid ) {
+		if ( this.useTemporaryGrid && this.meshTempObjs.buffer ) {
 			// console.log('temp flip')
 			this.meshTemp.geometry.dispose();
 			this.meshTemp.geometry = this.meshTempObjs.buffer;
 
 			this.meshTemp.visible = true;
-			this.mesh.visible = false;
-		} else {
+			if ( this.mesh ) this.mesh.visible = false;
+		} else if ( this.meshObjs.buffer ) {
 			this.mesh.geometry.dispose();
 			this.mesh.geometry = this.meshObjs.buffer;
 
@@ -134,6 +139,14 @@ export default class VolumetricChunk {
 					this.gridTemp = new Float32Array(data.grid);
 					this.terrainHeights = data.terrainHeights;
 
+					this.adjust( 
+						this.position.clone().add(
+							new THREE.Vector3(5,5,5)
+						), 
+						BuildPresets[2], 
+						false 
+					);
+
 					resolve();
 
 				}
@@ -192,6 +205,8 @@ export default class VolumetricChunk {
 			bary
 		} = data;
 
+		if ( indices.length === 0 ) return;
+
 		const meshObjs = this.useTemporaryGrid ? this.meshTempObjs : this.meshObjs;
 
 		//create new geometry
@@ -208,6 +223,7 @@ export default class VolumetricChunk {
 			mesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );
 			mesh.chunk = this;
 			mesh.position.x = this.position.x;
+			mesh.position.y = this.position.y;
 			mesh.position.z = this.position.z;
 			// mesh.material.needsUpdate = true;
 			// if (!this.useTemporaryGrid) {
@@ -299,7 +315,7 @@ export default class VolumetricChunk {
 	adjust( center, buildConfiguration, useTemporaryGrid ) {		
 
 		const localCenter = center.clone()
-			.sub( this.mesh.position )
+			.sub( this.position )
 			.divide( this.terrain.terrainScale )
 		if (buildConfiguration.gridSnap) localCenter.round()
 
@@ -429,7 +445,7 @@ export default class VolumetricChunk {
 	addScaleValueToGrid( x, y, z, val ) {
 
 		let gridOffset = this.gridIndex( x, y, z );
-		const oldValueScale = map( abs( this.grid[ gridOffset ] ), 0, 0.5, 0.001, 3 );
+		// const oldValueScale = map( abs( this.grid[ gridOffset ] ), 0, 0.5, 0.001, 3 );
 		const g = this.useTemporaryGrid ? this.gridTemp : this.grid;
 		// return this.gridTemp[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
 		const v = val + this.grid[ gridOffset ]
@@ -437,7 +453,7 @@ export default class VolumetricChunk {
 		// return g[ gridOffset ] = Math.max(val, this.grid[ gridOffset ]);
 		// return g[ gridOffset ] = v;
 		return g[ gridOffset ] = constrain( v, - 0.5, 0.5 );
-		return g[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
+		// return g[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
 
 	}
 
@@ -455,7 +471,7 @@ export default class VolumetricChunk {
 	isInsideGrid( coord ) {
 
 		return ( coord.x >= 0 && coord.x < this.terrain.gridSize.x &&
-			coord.y > 0 && coord.y < this.terrain.gridSize.y - 1 &&
+			coord.y >= 0 && coord.y < this.terrain.gridSize.y &&
 			coord.z >= 0 && coord.z < this.terrain.gridSize.z );
 
 	}

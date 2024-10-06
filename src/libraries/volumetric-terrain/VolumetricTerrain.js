@@ -12,7 +12,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		this.isVolumetricTerrain = true;
 		this.fps = options.fps || 20;
 
-		this.currentCoord = options.currentCoord || { x: 0, z: 0 };
+		this.currentCoord = options.currentCoord || { x: 0, y:0, z: 0 };
 		this.chunks = {};
 		this.chunkBuildQueue = {};
 		this.castables = [];
@@ -109,23 +109,28 @@ export default class VolumetricTerrain extends THREE.Object3D {
 				const addChunks = [];
 				for ( let x = - this.viewDistance; x <= this.viewDistance; x ++ ) {
 
-					for ( let z = - this.viewDistance; z <= this.viewDistance; z ++ ) {
+					for ( let y = - this.viewDistance; y <= this.viewDistance; y ++ ) {
 
-						addChunks.push( {
-							dist: x * x + z * z,
-							add: () =>{
+						for ( let z = - this.viewDistance; z <= this.viewDistance; z ++ ) {
 
-								new this.chunkClass(
-									this.currentCoord.x + x,
-									this.currentCoord.z + z,
-									this,
-									( chunk ) => LOAD_INITIAL_TERRAIN( chunk )
-								);
+							addChunks.push( {
+								dist: x * x + y * y + z * z,
+								add: () =>{
 
-							}
-						} );
+									new this.chunkClass(
+										this.currentCoord.x + x,
+										this.currentCoord.y + y,
+										this.currentCoord.z + z,
+										this,
+										( chunk ) => LOAD_INITIAL_TERRAIN( chunk )
+									);
 
-						num_initial_chunks ++;
+								}
+							} );
+
+							num_initial_chunks ++;
+
+						}
 
 					}
 
@@ -193,6 +198,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 
 					new this.chunkClass(
 						this.chunkBuildQueue[ chunkKey ].x,
+						this.chunkBuildQueue[ chunkKey ].y,
 						this.chunkBuildQueue[ chunkKey ].z,
 						this,
 						chunk => {
@@ -215,7 +221,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		await Promise.all( promises ).then( data => {
 
 			if ( data.length > 0 ) {
-				// console.log('flipping', data.length);
+				console.log('flipping', data.length);
 
 				for ( let chunkKey of data ) {
 
@@ -230,6 +236,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		if ( ! this.currentCoord ||
                 updatedChunk === true ||
                 this.currentCoord.x != currentCoord.x ||
+                this.currentCoord.y != currentCoord.y ||
                 this.currentCoord.z != currentCoord.z ) {
 
 			this.updatecurrentCoord( currentCoord, ! updatedChunk );
@@ -274,12 +281,16 @@ export default class VolumetricTerrain extends THREE.Object3D {
 	// "Y88888P'
 	getCoordFromPosition( position ) {
 
-		return { x: Math.floor( position.x / this.chunkSizeOverlap ), z: Math.floor( position.z / this.chunkSizeOverlap ) };
+		return { 
+			x: Math.floor( position.x / this.chunkSizeOverlap ), 
+			y: Math.floor( position.y / this.chunkSizeOverlap ), 
+			z: Math.floor( position.z / this.chunkSizeOverlap ) 
+		};
 
 	}
 	getChunkKey( coord ) {
 
-		return coord.x + ":" + coord.z;
+		return coord.x + ":" + coord.y + ":" + coord.z;
 
 	}
 	getChunk( key ) {
@@ -320,24 +331,32 @@ export default class VolumetricTerrain extends THREE.Object3D {
         	//new chunk coordinate
         	for ( let x = - this.viewDistance; x <= this.viewDistance; x ++ ) {
 
-        		for ( let z = - this.viewDistance; z <= this.viewDistance; z ++ ) {
+        		for ( let y = - this.viewDistance; y <= this.viewDistance; y ++ ) {
+					
+					for ( let z = - this.viewDistance; z <= this.viewDistance; z ++ ) {
 
-        			let coord = { x: currentCoord.x + x, z: currentCoord.z + z };
-        			let chunkKey = this.getChunkKey( coord );
+						let coord = { 
+							x: currentCoord.x + x, 
+							y: currentCoord.y + y, 
+							z: currentCoord.z + z 
+						};
+						let chunkKey = this.getChunkKey( coord );
 
 
-        			//if chunk does not exist,
-        			//or it's low lod and if it's a farchunk:
-        			//add it to chunk generation queue
-        			if ( ! this.getChunk( chunkKey ) ) {
+						//if chunk does not exist,
+						//or it's low lod and if it's a farchunk:
+						//add it to chunk generation queue
+						if ( ! this.getChunk( chunkKey ) ) {
 
-        				this.chunkBuildQueue[ chunkKey ] = coord;
+							this.chunkBuildQueue[ chunkKey ] = coord;
 
-        			}
+						}
 
-        			newVisibleChunks[ chunkKey ] = true;
+						newVisibleChunks[ chunkKey ] = true;
 
-        		}
+					}
+
+				}
 
         	}
 
@@ -391,12 +410,20 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		let d = 1;
 		for ( let x = - d; x <= d; x ++ ) {
 
-			for ( let z = - d; z <= d; z ++ ) {
+			for ( let y = - d; y <= d; y ++ ) {
 
-				let chunkCoord = { x: currentCoord.x + x, z: currentCoord.z + z };
-				let chunkKey = this.getChunkKey( chunkCoord );
+				for ( let z = - d; z <= d; z ++ ) {
 
-				newcastables[ chunkKey ] = true;
+					let chunkCoord = { 
+						x: currentCoord.x + x, 
+						y: currentCoord.y + y, 
+						z: currentCoord.z + z 
+					};
+					let chunkKey = this.getChunkKey( chunkCoord );
+
+					newcastables[ chunkKey ] = true;
+
+				}
 
 			}
 
@@ -409,7 +436,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 			let chunk = this.getChunk( chunkKey );
 			let objects = castableObjects.map( castableObject => castableObject?.cachedData[ chunkKey ]?.mesh || castableObject );
 
-			if ( chunk ) this.castables.push( chunk.mesh );
+			if ( chunk && chunk.mesh ) this.castables.push( chunk.mesh );
 			if ( objects.length > 0 ) this.castables.push( ...objects );
 
 		}
@@ -438,13 +465,13 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		// TODO simplify
 		const centerChunkCoord = new THREE.Vector3(
 			center.x / ( this.gridSize.x - CHUNK_OVERLAP ) / this.terrainScale.x,
-			0,
+			center.y / ( this.gridSize.y - CHUNK_OVERLAP ) / this.terrainScale.y,
 			center.z / ( this.gridSize.z - CHUNK_OVERLAP ) / this.terrainScale.z
 		).floor();
 		
 		const centerChunkPosition = new THREE.Vector3(
 			centerChunkCoord.x * ( this.gridSize.x - CHUNK_OVERLAP ) * this.terrainScale.x,
-			0,
+			centerChunkCoord.y * ( this.gridSize.y - CHUNK_OVERLAP ) * this.terrainScale.y,
 			centerChunkCoord.z * ( this.gridSize.z - CHUNK_OVERLAP ) * this.terrainScale.z
 		);
 
@@ -457,24 +484,31 @@ export default class VolumetricTerrain extends THREE.Object3D {
 
 		for (var i = -1; i <=1; i++){
 			for (var j = -1; j <=1; j++){
+				for (var k = -1; k <=1; k++){
 
-				let nChunk = this.getChunkKey( { x: centerChunkCoord.x + i, z: centerChunkCoord.z + j } );
-				const chunk = this.chunks[ nChunk ];
+					let nChunk = this.getChunkKey( { 
+						x: centerChunkCoord.x + i, 
+						y: centerChunkCoord.y + k, 
+						z: centerChunkCoord.z + j 
+					} );
+					const chunk = this.chunks[ nChunk ];
 
-				if ( !chunk ) continue;
-				// console.log(nChunk)
+					if ( !chunk ) continue;
+					// console.log(nChunk)
 
-				if (
-					( ( i > 0 ? this.gridSize.x : 0 ) + ( localCenter.x * -i ) - loopRadius - extraMargin <= 0 ) &&
-					( ( j > 0 ? this.gridSize.z : 0 ) + ( localCenter.z * -j ) - loopRadius - extraMargin <= 0 )
-					) {
-					if ( true ) {
-						chunk.adjust( center, buildConfiguration, isTemporary );
+					if (
+						( ( i > 0 ? this.gridSize.x : 0 ) + ( localCenter.x * -i ) - loopRadius - extraMargin <= 0 ) &&
+						( ( k > 0 ? this.gridSize.y : 0 ) + ( localCenter.y * -k ) - loopRadius - extraMargin <= 0 ) &&
+						( ( j > 0 ? this.gridSize.z : 0 ) + ( localCenter.z * -j ) - loopRadius - extraMargin <= 0 )
+						) {
+						if ( true ) {
+							chunk.adjust( center, buildConfiguration, isTemporary );
+						}
+					} else if ( chunk.useTemporaryGrid ) {
+						// console.log(chunk.chunkKey, 'flip off')
+						chunk.useTemporaryGrid = false;
+						chunk.flipMesh();
 					}
-				} else if ( chunk.useTemporaryGrid ) {
-					// console.log(chunk.chunkKey, 'flip off')
-					chunk.useTemporaryGrid = false;
-					chunk.flipMesh();
 				}
 			}
 		}

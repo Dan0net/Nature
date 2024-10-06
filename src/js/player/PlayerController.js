@@ -457,9 +457,8 @@ export default class Player extends THREE.Object3D {
 
 				} else {
 
-					nPos.copy( this.position );
-					nPos.y += 0.1;
-					this.vDown = this.gravity + 0.5;
+					this.vDown -= this.gravity * delta;
+					this.grounded = false;
 
 				}
 
@@ -482,6 +481,8 @@ export default class Player extends THREE.Object3D {
 
 			//set new position and gravity velocity
 			this.position.copy( nPos );
+
+			// console.log('player', this.position)
 
 			// console.log(this.position);
 			resolve();

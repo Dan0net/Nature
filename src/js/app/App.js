@@ -117,7 +117,7 @@ export default class App {
 
 			}
 
-			offset = offset || { x: 0, z: 0 };
+			offset = offset || { x: 0, y: 1, z: 0 };
 
 			this.player.init(
 				this.terrainController.getChunk( this.terrainController.getChunkKey( offset ) ),

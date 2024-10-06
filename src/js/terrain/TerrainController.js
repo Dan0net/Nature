@@ -169,29 +169,33 @@ export default class TerrainController extends VolumetricTerrain {
 				const addChunks = [];
 				for ( let x = - this.viewDistance; x <= this.viewDistance; x ++ ) {
 
-					for ( let z = - this.viewDistance; z <= this.viewDistance; z ++ ) {
+					for ( let y = - this.viewDistance; y <= this.viewDistance; y ++ ) {
 
-						addChunks.push( {
-							dist: x * x + z * z,
-							add: () =>{
+						for ( let z = - this.viewDistance; z <= this.viewDistance; z ++ ) {
 
-								new this.chunkClass(
-									this.currentCoord.x + x,
-									this.currentCoord.z + z,
-									this,
-									( chunk ) => LOAD_INITIAL_TERRAIN( chunk )
-								);
+							addChunks.push( {
+								dist: x * x + z * z,
+								add: () =>{
 
-							}
-						} );
+									new this.chunkClass(
+										this.currentCoord.x + x,
+										this.currentCoord.y + y,
+										this.currentCoord.z + z,
+										this,
+										( chunk ) => LOAD_INITIAL_TERRAIN( chunk )
+									);
 
-						num_initial_chunks ++;
+								}
+							} );
 
-						const d = document.createElement( 'div' );
-						d.id = `${this.currentCoord.x + x}:${this.currentCoord.z + z}`;
-						d.className = 'loading-grid-item';
-						grid.appendChild( d );
+							num_initial_chunks ++;
 
+							const d = document.createElement( 'div' );
+							d.id = `${this.currentCoord.x + x}:${this.currentCoord.y + y}:${this.currentCoord.z + z}`;
+							d.className = 'loading-grid-item';
+							grid.appendChild( d );
+
+						}
 					}
 
 				}
@@ -246,6 +250,7 @@ export default class TerrainController extends VolumetricTerrain {
 		// check if player is undergorund
 		const chunkKey = this.getChunkKey( this.currentCoord );
 		const chunk = this.chunks[ chunkKey ];
+		if ( !chunk ) return;
 		const gridPosition = app.player.position.clone()
 			.sub( chunk.position )
 			.divide( this.terrainScale )
