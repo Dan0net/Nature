@@ -5,12 +5,12 @@ export default [
         name: 'wall',
         shape: 'cube',
         constructive: true,
-        size: new THREE.Vector3(4, 4, 0.25),
+        size: new THREE.Vector3(6, 6, 0.25),
         material: 2,
         align: 'base',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.BoxGeometry( 4, 4, 0.5 ),
+        wireframeGeometry: new THREE.BoxGeometry( 6, 6, 0.5 ),
     },
     {
         name: 'floor',
@@ -63,7 +63,7 @@ export default [
         size: new THREE.Vector3(1, 4, 0),
         material: 1,
         align: 'center',
-        rotation: new THREE.Euler(Math.PI/2,0,0, 'XYZ'),
+        rotation: new THREE.Euler(Math.PI/2,0,0, 'ZYX'),
         gridSnap: false,
         wireframeGeometry: new THREE.CylinderGeometry(0.5, 0.5, 4, 8, 4)
     },

@@ -52,7 +52,7 @@ export default class Player extends THREE.Object3D {
 		//brush vars
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.05;
-		this.maxBuildDistance = 5;
+		this.maxBuildDistance = 30;
 		this.buildRotation = 0;
 		this.buildPlaceTrigger = true;
 
@@ -78,6 +78,7 @@ export default class Player extends THREE.Object3D {
 		this.buildMarker = new BuildMarker();
 		this.buildPreset = 0;
 		this.buildConfiguration = Object.assign({}, BuildPresets[0])
+		this.buildConfiguration.needsUpdating = true;
 		this.buildMaterial = 0;
 		this.maxBuildMaterials = 4;
 		console.log(this.buildConfiguration)
@@ -214,6 +215,8 @@ export default class Player extends THREE.Object3D {
 
 			app.scene.add(this.buildWireframe);
 		}
+
+		this.updateCameraCollision();
 
 		resolve();
 
@@ -510,8 +513,11 @@ export default class Player extends THREE.Object3D {
 	    if ( e.code == app.key.escape ) app.stopGame();
 		if ( e.code == app.key.grab ) this.grabbing = true;
 		
-		console.log(this.cameraMaxDistance)
-		if ( e.code == app.key.viewMode ) this.cameraMaxDistance = (this.cameraMaxDistance !== this.cameraOriginalDistance ? this.cameraOriginalDistance : 0.01);
+		// console.log(this.cameraMaxDistance)
+		if ( e.code == app.key.viewMode ) {
+			this.cameraMaxDistance = (this.cameraMaxDistance !== this.cameraOriginalDistance ? this.cameraOriginalDistance : 0.01);
+			this.updateCameraCollision();
+		}
 		if ( e.code == app.key.flyMode ) this.flyMode = !this.flyMode;
 
 		if ( e.code == app.key.nextShape ) this.adjustBuildShape(1);
@@ -650,6 +656,8 @@ export default class Player extends THREE.Object3D {
 
 		this.updateCameraCollision();
 
+		this.buildConfiguration.needsUpdating = true;
+
 	}
 
 	mouseWheel( e ) {
@@ -661,9 +669,12 @@ export default class Player extends THREE.Object3D {
 
 		this.buildRotation = (this.buildRotation + (e.deltaY > 0 ? Math.PI / 8 : -Math.PI / 8)) % (Math.PI * 2);
 		this.buildConfiguration.rotation.y = this.buildRotation;
+
 		// if ( this.cameraMaxDistance < 0.01 ) this.cameraMaxDistance = 0.01;
 		// if ( this.cameraMaxDistance > this.cameraOriginalDistance * 2 ) this.cameraMaxDistance = this.cameraOriginalDistance * 2;
 		// this.updateCameraCollision();
+
+		this.buildConfiguration.needsUpdating = true;
 	}
 
 
@@ -704,12 +715,16 @@ export default class Player extends THREE.Object3D {
 		//update wireframe material
 		this.buildWireframeMaterial.color.set(this.buildConfiguration.constructive ? 0x00FF00 : 0xFF0000);
 		this.buildWireframeMaterial.needsUpdate = true;
+
+		this.buildConfiguration.needsUpdating = true;
 	}
 
 	adjustBuildMaterial ( delta ) {
 		this.buildMaterial = (this.buildMaterial + delta + this.maxBuildMaterials) % this.maxBuildMaterials;
 		this.buildConfiguration['material'] = this.buildMaterial;
 		console.log(this.buildPreset, this.buildConfiguration);
+
+		this.buildConfiguration.needsUpdating = true;
 	}
 
 	adjustTerrain( delta, mouseIsPressed ) {
@@ -726,37 +741,20 @@ export default class Player extends THREE.Object3D {
 
 		let center;
 		if ( this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
-
-			// if ( isPlacing) console.log('trying to place..')
-			//exit if building too close by, or too far.
-			// let d = this.intersectPoint.point.distanceTo( this.position );
-			// if ( d > this.maxBuildDistance || ( mouseButton == RIGHT && d < this.minDigDistance ) ) return;
-
-			// let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength * delta : this.terrainAdjustStrength * delta;
-			
-
-			// if ( val < 0 ) {
-			// 	this.intersectPoint.point.add(new THREE.Vector3(0, this.brushRadius, 0))
-			// }
-
-			// const buildBBox = this.buildConfiguration.size.clone().applyEuler(this.buildConfiguration.rotation)
-			// console.log(this.intersectPoint.face.normal, buildBBox)
-			// buildBBox.multiplyVectors(buildBBox, this.intersectPoint.face.normal)
-
 			center = this.intersectPoint.point.clone()
-			
 			this.buildMarker.visible = true;
 			this.buildMarker.position.copy( this.intersectPoint.point );
-			// console.log(center)
 			this.buildMarker.lookAt( center );
 
 		} else {
-			const direction = new THREE.Vector3();
-			this.cameraRig.getWorldDirection(direction)
+			const v = new THREE.Vector3();
+			const p = new THREE.Vector3();
+			this.camera.getWorldDirection( v );
+			this.camera.getWorldPosition( p )
+			v.multiplyScalar( this.maxBuildDistance );
 
-			center = this.cameraRig.position.clone().add(direction.multiplyScalar(-this.maxBuildDistance));
-			// center = new THREE.Vector3(-3, 12, -3)
-			// console.log(center)
+			center = new THREE.Vector3(9,10,-10);
+			center = p.add(v);
 			
 			this.buildMarker.visible = false;
 		}
@@ -769,20 +767,22 @@ export default class Player extends THREE.Object3D {
 			))
 		}
 
-		// if (!this.buildCenterPrevious || !center.equals(this.buildCenterPrevious) || isPlacing){
+		if (   !this.buildCenterPrevious 
+			|| this.buildConfiguration.needsUpdating
+			|| !center.equals(this.buildCenterPrevious) 
+			|| isPlacing){
 
 			this.buildWireframe.scale.copy( new THREE.Vector3(1,1,1).multiplyScalar(this.buildConfiguration.constructive ? 1.1 : 0.9) )
 			this.buildWireframe.position.copy( center )
 			this.buildWireframe.setRotationFromEuler( this.buildConfiguration.rotation )
 
 			//tell chunk to change the terrain
-			//TODO move this to TerrainController
-			// this.intersectPoint.object.chunk.adjust( center, this.buildConfiguration, val, true, !isPlacing );
 			app.terrainController.adjust( center, this.buildConfiguration, !isPlacing );
 			app.terrainController.updateInstancedObjects();
 
 			this.buildCenterPrevious = center;
-		// }
+			this.buildConfiguration.needsUpdating = false;
+		}
 
 	}
 

@@ -68,9 +68,9 @@ export default class VolumetricChunk {
 		}
 
 		if ( this.useTemporaryGrid ) {
-			console.log('temp flip')
-			this.mesh.visible = false;
+			// console.log('temp flip')
 			this.meshTemp.visible = true;
+			this.mesh.visible = false;
 		} else {
 			this.mesh.visible = true;
 			if (this.meshTemp) this.meshTemp.visible = false;
@@ -192,16 +192,19 @@ export default class VolumetricChunk {
 			const buffer = new THREE.BufferGeometry();
 
 			//create new mesh with preloaded material
-			const mesh = new THREE.Mesh( buffer, this.terrain.material );
+			const mesh = new THREE.Mesh( 
+				buffer, 
+				this.terrain.material // this.useTemporaryGrid ? this.terrain.materialTemp : this.terrain.material 
+			);
 			mesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );
 			mesh.chunk = this;
 			mesh.position.x = this.position.x;
 			mesh.position.z = this.position.z;
 			mesh.material.needsUpdate = true;
-			if (!this.useTemporaryGrid) {
+			// if (!this.useTemporaryGrid) {
 				mesh.castShadow = true;
 				mesh.receiveShadow = true;
-			}
+			// }
 
 			mesh.updateWorldMatrix();
 			mesh.matrixAutoUpdate = false;

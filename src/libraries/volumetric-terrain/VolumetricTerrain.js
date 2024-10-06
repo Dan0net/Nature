@@ -25,6 +25,10 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		this.chunkSizeOverlap = ( this.gridSize.x - CHUNK_OVERLAP ) * this.terrainScale.x;
 
 		this.material = options.material || new THREE.MeshLambertMaterial( { color: 'rgb(100, 100, 100)' } );
+		// this.materialTemp = options.material.clone() || new THREE.MeshLambertMaterial( { color: 'rgb(100, 100, 100)' } );
+		// this.materialTemp.transparent = true;
+		// this.materialTemp.opacity = 0.5;
+
 		this.meshFactory = options.meshFactory || undefined;
 		this.chunkClass = options.chunkClass || VolumetricChunk;
 
@@ -211,10 +215,11 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		await Promise.all( promises ).then( data => {
 
 			if ( data.length > 0 ) {
-				console.log('flipping', data.length);
+				// console.log('flipping', data.length);
 
 				for ( let chunkKey of data ) {
 
+					// TODO fix chunk render flickering
 					this.chunks[ chunkKey ].flipMesh();
 
 				}
