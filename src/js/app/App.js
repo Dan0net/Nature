@@ -250,34 +250,6 @@ export default class App {
 		stats.domElement.style.top = '0';
 		document.body.appendChild( stats.domElement );
 
-
-		//lights
-		const skyColor = 0xB1E1FF;  // light blue
-		const groundColor = 0xB97A20;  // brownish orange
-		const Hintensity = 0.1;
-		const Hlight = new THREE.HemisphereLight(skyColor, groundColor, Hintensity);
-		this.scene.add(Hlight);
-
-		const Dcolor = 0xFFFFFF;
-		const Dintensity = 2;
-		this.Dlight = new THREE.DirectionalLight(Dcolor, Dintensity);
-		this.Dlight.position.set(-75, 100, 75);
-		this.Dlight.target.position.set(0, 20, 0);
-		this.Dlight.castShadow = true;
-		this.Dlight.shadow.camera.zoom = 1;
-		this.Dlight.shadow.camera.blur = 4;
-		this.Dlight.shadow.camera.radius = 10;
-		this.Dlight.shadow.camera.left = -30
-		this.Dlight.shadow.camera.right = 30;
-		this.Dlight.shadow.camera.top = 30;
-		this.Dlight.shadow.camera.bottom = -30;
-		console.log(this.Dlight.shadow.camera)
-		this.scene.add(this.Dlight);
-		this.scene.add(this.Dlight.target);
-
-		const cameraHelper = new THREE.CameraHelper(this.Dlight.shadow.camera);
-		this.scene.add(cameraHelper);
-
 		//fog
 		this.scene.fog = new THREE.FogExp2( 'rgb(240, 240, 255)', 0.00045 );
 

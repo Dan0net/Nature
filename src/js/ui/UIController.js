@@ -170,17 +170,17 @@ export default class UIController {
 		const shadows = this.elements.shadows.querySelector( 'input:checked' ).value;
 		const mouseSensitivity = Number( this.elements.mouseSensitivity.value );
 
-		switch ( shadows ) {
+		// switch ( shadows ) {
 
-			case 'off':
-				app.player.shadowLight.shadow.camera.far = 2;
-				break;
-			case 'on':
-				app.player.shadowLight.shadow.camera.far = app.player.defaultShadowLightFar;
-				break;
+		// 	case 'off':
+		// 		app.player.shadowLight.shadow.camera.far = 2;
+		// 		break;
+		// 	case 'on':
+		// 		app.player.shadowLight.shadow.camera.far = app.player.defaultShadowLightFar;
+		// 		break;
 
-		}
-		app.player.shadowLight.shadow.camera.updateProjectionMatrix();
+		// }
+		// app.player.shadowLight.shadow.camera.updateProjectionMatrix();
 
 		app.player.mouseSensitivity = app.player.defaultMouseSensitivity * 2 * mouseSensitivity;
 

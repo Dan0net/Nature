@@ -165,52 +165,36 @@ export default class Player extends THREE.Object3D {
 
 			this.add( this.model );
 
-
-
-			//add shadowlight. This position is updated in the update function
-			this.shadowLightIntensity = 0.57;
-			this.shadowLightOffset = new THREE.Vector3( 30, 80, 0 ).multiplyScalar( 5 );
-			this.shadowLight = new THREE.DirectionalLight( 0xffffff, this.shadowLightIntensity );
-			this.shadowLight.target = new THREE.Object3D();
-			app.scene.add( this.shadowLight.target );
-
-			this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
-			this.shadowLight.target.position.copy( this.position );
-
-			this.defaultShadowLightFar = 800;
-			this.shadowLight.castShadow = true;
-			this.shadowLight.shadow.mapSize.width = 1024;
-			this.shadowLight.shadow.mapSize.height = 1024;
-			this.shadowLight.shadow.camera.near = 1;
-			this.shadowLight.shadow.camera.far = this.defaultShadowLightFar;
-			this.shadowLight.shadow.camera.top = - 1000;
-			this.shadowLight.shadow.camera.bottom = 1000;
-			this.shadowLight.shadow.camera.left = - 1000;
-			this.shadowLight.shadow.camera.right = 1000;
-			this.shadowLight.shadow.bias = - 0.002;
-			app.scene.add( this.shadowLight );
 			this.cameraTimer = 0;
 
+			//lights
+			const skyColor = 0xB1E1FF;  // light blue
+			const groundColor = 0xB97A20;  // brownish orange
+			const Hintensity = 0.1;
+			const Hlight = new THREE.HemisphereLight(skyColor, groundColor, Hintensity);
+			app.scene.add(Hlight);
 
+			const Dcolor = 0xFFFFFF;
+			const Dintensity = 2;
+			this.shadowLightOffset = new THREE.Vector3(-75, 100, 75);
+			this.shadowLight = new THREE.DirectionalLight(Dcolor, Dintensity);
+			this.shadowLight.position.copy(this.shadowLightOffset);
+			this.shadowLight.target.position.set(0, 20, 0);
+			this.shadowLight.castShadow = true;
+			this.shadowLight.shadow.camera.zoom = 1;
+			this.shadowLight.shadow.camera.blur = 4;
+			this.shadowLight.shadow.camera.radius = 10;
+			this.shadowLight.shadow.camera.left = -30
+			this.shadowLight.shadow.camera.right = 30;
+			this.shadowLight.shadow.camera.top = 30;
+			this.shadowLight.shadow.camera.bottom = -30;
+			console.log(this.shadowLight.shadow.camera)
+			app.scene.add(this.shadowLight);
+			app.scene.add(this.shadowLight.target);
 
-			// //add a skybox. This position is updated in the update function
-			// this.skyBox = new THREE.Mesh(
-			// 	new THREE.SphereGeometry(
-			// 		startChunk.terrain.chunkSize * 2 * Math.min( startChunk.terrain.viewDistance + 2, 14 ),
-			// 		64,
-			// 		64
-			// 	),
-			// 	new THREE.MeshBasicMaterial( {
-			// 		map: new THREE.TextureLoader().load( './resources/images/background.jpg' ),
-			// 		side: THREE.BackSide
-			// 	} )
-			// );
-			// this.skyBox.material.map.mapping = THREE.EquirectangularRefractionMapping;
-			// this.skyBox.material.map.encoding = THREE.sRGBEncoding;
-
-			// app.scene.add( this.skyBox );
-
-					// env map
+			const cameraHelper = new THREE.CameraHelper(this.shadowLight.shadow.camera);
+			app.scene.add(cameraHelper);
+		
 
 			const loader = new THREE.CubeTextureLoader();
 			loader.setPath( 'resources/images/skybox/' );
@@ -285,11 +269,11 @@ export default class Player extends THREE.Object3D {
 		// this.skyBox.position.y *= 0.4;
 		// this.skyBox.rotation.x += 0.00004;
 
-		// if ( ++ this.cameraTimer > 200 ) {
-		// 	this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
-		// 	this.shadowLight.target.position.copy( this.position );
-		// 	this.cameraTimer = 0;
-		// }
+		if ( ++ this.cameraTimer > 200 ) {
+			this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
+			this.shadowLight.target.position.copy( this.position );
+			this.cameraTimer = 0;
+		}
 
 	}
 
