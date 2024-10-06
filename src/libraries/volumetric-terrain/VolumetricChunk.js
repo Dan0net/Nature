@@ -15,17 +15,12 @@ export default class VolumetricChunk {
 		this.offset = { x, y, z };
 		this.chunkKey = this.terrain.getChunkKey( this.offset );
 
-		console.log(this.chunkKey)
-
 		//terrain generation vars
 		this.position = new THREE.Vector3(
 			this.offset.x * ( this.terrain.gridSize.x - CHUNK_OVERLAP ) * this.terrain.terrainScale.x,
 			this.offset.y * ( this.terrain.gridSize.y - CHUNK_OVERLAP ) * this.terrain.terrainScale.y,
 			this.offset.z * ( this.terrain.gridSize.z - CHUNK_OVERLAP ) * this.terrain.terrainScale.z
 		);
-
-		console.log(this.position)
-
 
 		this.grid;
 		this.gridTemp;
@@ -36,6 +31,24 @@ export default class VolumetricChunk {
 		this.mesh;
 		this.meshTempObjs = {};
 		this.meshTemp;
+
+		this.debugGeom = new THREE.BoxGeometry(
+			( this.terrain.gridSize.x - CHUNK_OVERLAP ) * this.terrain.terrainScale.x,
+			( this.terrain.gridSize.y - CHUNK_OVERLAP ) * this.terrain.terrainScale.y,
+			( this.terrain.gridSize.z - CHUNK_OVERLAP ) * this.terrain.terrainScale.z
+		)
+
+		this.debugWireframeMaterial = new THREE.LineBasicMaterial( { 
+			color: 0xff0000
+		 } );
+
+		this.debugWireframe = new THREE.LineSegments( 
+			this.debugGeom, 
+			this.debugWireframeMaterial 
+		);
+		this.debugWireframe.position.copy(this.position);
+
+		// this.terrain.add(this.debugWireframe);
 
 		//initialize the grid
 		this.generateGrid()
@@ -59,18 +72,8 @@ export default class VolumetricChunk {
 
 	flipMesh() {
 
-		// if (this.mesh === undefined && this.meshObjs.mesh !== undefined) {
-		// 	this.mesh = this.meshObjs.mesh
-		// 	this.terrain.add(this.mesh);
-		// 	// console.log(this.offset, this.mesh)
-		// }
-
-		// if (this.meshTemp === undefined && this.meshTempObjs.mesh !== undefined) {
-		// 	this.meshTemp = this.meshTempObjs.mesh
-		// 	// console.log(this.meshTemp, this.meshTempObjs)
-		// 	this.terrain.add(this.meshTemp);
-		// 	// console.log(this.offset, 't')
-		// }
+		if ( this.mesh ) this.mesh.visible = false;
+		if (this.meshTemp) this.meshTemp.visible = false;
 
 		if ( this.useTemporaryGrid && this.meshTempObjs.buffer ) {
 			// console.log('temp flip')
@@ -78,14 +81,15 @@ export default class VolumetricChunk {
 			this.meshTemp.geometry = this.meshTempObjs.buffer;
 
 			this.meshTemp.visible = true;
-			if ( this.mesh ) this.mesh.visible = false;
 		} else if ( this.meshObjs.buffer ) {
 			this.mesh.geometry.dispose();
 			this.mesh.geometry = this.meshObjs.buffer;
 
 			this.mesh.visible = true;
-			if (this.meshTemp) this.meshTemp.visible = false;
-		}
+		} 
+
+		this.debugWireframeMaterial.color.set(this.useTemporaryGrid ? 0xFFFF00 : 0x00FF00);
+		this.debugWireframeMaterial.needsUpdate = true;
 	}
 
 	//                              .o8                .
@@ -139,14 +143,6 @@ export default class VolumetricChunk {
 					this.gridTemp = new Float32Array(data.grid);
 					this.terrainHeights = data.terrainHeights;
 
-					this.adjust( 
-						this.position.clone().add(
-							new THREE.Vector3(5,5,5)
-						), 
-						BuildPresets[2], 
-						false 
-					);
-
 					resolve();
 
 				}
@@ -176,6 +172,9 @@ export default class VolumetricChunk {
 
 	generateMeshData() {
 		return new Promise( resolve =>{
+
+			this.debugWireframeMaterial.color.set(0xFF0000);
+			this.debugWireframeMaterial.needsUpdate = true;
 
 			this.terrain.meshWorkerBank.work(
 				{
@@ -241,8 +240,6 @@ export default class VolumetricChunk {
 				this.mesh = mesh;
 				this.terrain.add(this.mesh);
 			}
-
-			this.terrain.add(this.mesh);
 			
 			Object.assign(meshObjs, {
 				mesh: mesh
@@ -279,14 +276,14 @@ export default class VolumetricChunk {
 
 		Object.assign(meshObjs, {
 			buffer: buffer,
-			indices: indices,
-			indexBufferAttribute: indexBufferAttribute,
-			vertices: vertices,
-			positionBufferAttribute: positionBufferAttribute,
-			adjusted: adjusted,
-			adjustedBufferAttribute: adjustedBufferAttribute,
-			bary: bary,
-			baryBufferAttribute: baryBufferAttribute
+			// indices: indices,
+			// indexBufferAttribute: indexBufferAttribute,
+			// vertices: vertices,
+			// positionBufferAttribute: positionBufferAttribute,
+			// adjusted: adjusted,
+			// adjustedBufferAttribute: adjustedBufferAttribute,
+			// bary: bary,
+			// baryBufferAttribute: baryBufferAttribute
 		});
 	}
 
@@ -312,7 +309,7 @@ export default class VolumetricChunk {
 	// "Y88888P'
 
 
-	adjust( center, buildConfiguration, useTemporaryGrid ) {		
+	adjust( center, buildExtents, buildConfiguration, useTemporaryGrid ) {		
 
 		const localCenter = center.clone()
 			.sub( this.position )
@@ -325,10 +322,10 @@ export default class VolumetricChunk {
 			this.adjustedIndicesTemp.set(this.adjustedIndices);
 		}
 
-		this.adjustGrid( localCenter, buildConfiguration );
+		this.adjustGrid( localCenter, buildExtents, buildConfiguration );
 	}
 
-	async adjustGrid( center, buildConfiguration ) {
+	async adjustGrid( center, buildExtents, buildConfiguration ) {
 
 		const drawFunc = {
 			'sphere': this.drawSphere,
@@ -337,7 +334,7 @@ export default class VolumetricChunk {
 		}[buildConfiguration.shape]
 
 		//square loop around a sphere brush
-		let loopRadius = buildConfiguration.size.x + 4;
+		let loopRadius = buildConfiguration.size.x;
 
 		let p;
 		let gridPosition = new THREE.Vector3();
@@ -351,11 +348,11 @@ export default class VolumetricChunk {
 
 		const val = buildConfiguration.constructive ? 1 : -1;
 
-		for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
+		for ( let y = - buildExtents.y; y <= buildExtents.y; y ++ ) {
 
-			for ( let z = - loopRadius; z <= loopRadius; z ++ ) {
+			for ( let z = - buildExtents.z; z <= buildExtents.z; z ++ ) {
 
-				for ( let x = - loopRadius; x <= loopRadius; x ++ ) {
+				for ( let x = - buildExtents.x; x <= buildExtents.x; x ++ ) {
 					gridPosition.set( x, y, z ).add( centerRounded );
 
 					if ( this.isInsideGrid( gridPosition ) ) {
@@ -477,6 +474,8 @@ export default class VolumetricChunk {
 	}
 
 	async dispose() {
+
+		this.terrain.remove(this.debugWireframe);
 
 		if ( this.mesh ) {
 			// TODO fix clean up

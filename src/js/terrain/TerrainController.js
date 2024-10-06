@@ -23,7 +23,7 @@ export default class TerrainController extends VolumetricTerrain {
 			terrainScale: { x: .5, y: .5, z: .5 },
 			currentCoord: offset,
 			viewDistance: viewDistance.viewHigh + viewDistance.viewLow,
-			fps: 60,
+			fps: 24,
 			material: terrainMaterial( app.scene.background ),
 			// material: terrainMaterialBasic,
 			// material: terrainMaterial3D,

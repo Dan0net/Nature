@@ -334,12 +334,6 @@ const terrainMaterial= (envmap) => {
             `
         );
 
-        shader.fragmentShader = shader.fragmentShader.replace(
-            'texture2D( normalMap, vNormalMapUv ).xyz',
-            `
-            `
-        );
-
     };
     return mat;
 }

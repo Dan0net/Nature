@@ -1,6 +1,7 @@
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from '../../libraries/raycast-bvh/RaycastBVH';
 import VolumetricChunk from '../../libraries/volumetric-terrain/VolumetricChunk';
 import { MeshSurfaceSampler } from 'three/examples/jsm/math/MeshSurfaceSampler';
+import BuildPresets from '../player/BuildPresets';
 
 export default class Chunk extends VolumetricChunk {
 
@@ -65,6 +66,16 @@ export default class Chunk extends VolumetricChunk {
 					this.gridTemp = new Float32Array(data.grid);
 					this.terrainHeights = data.terrainHeights;
 
+					console.log('a')
+					this.adjust( 
+						this.position.clone().add(
+							new THREE.Vector3(5,5,5)
+						), 
+						new THREE.Vector3(6,6,6),
+						BuildPresets[2], 
+						false 
+					);
+
 					if ( this.terrain.DB ) {
 
 						const data = await this.terrain.DB.getAll( this.chunkKey );
@@ -86,22 +97,22 @@ export default class Chunk extends VolumetricChunk {
 
 	}
 
-	async adjustGrid( ...args ) {
+	// async adjustGrid( ...args ) {
 
-		super.adjustGrid( ...args );
+	// 	super.adjustGrid( ...args );
 
-		if ( this.terrain.DB && this.adjustedBuffer.length > 0 ) {
+	// 	if ( this.terrain.DB && this.adjustedBuffer.length > 0 ) {
 
-			this.terrain.DB.add( this.chunkKey, this.adjustedBuffer )
-				.then( () => {
+	// 		this.terrain.DB.add( this.chunkKey, this.adjustedBuffer )
+	// 			.then( () => {
 
-					this.adjustedBuffer.length = 0;
+	// 				this.adjustedBuffer.length = 0;
 
-				} );
+	// 			} );
 
-		}
+	// 	}
 
-	}
+	// }
 
 	saveGridPosition( gridPosition, materialInd ) {
 		const a = this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices;

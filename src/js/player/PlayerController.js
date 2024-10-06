@@ -184,10 +184,11 @@ export default class Player extends THREE.Object3D {
 			this.shadowLight.shadow.camera.zoom = 1;
 			this.shadowLight.shadow.camera.blur = 4;
 			this.shadowLight.shadow.camera.radius = 10;
-			this.shadowLight.shadow.camera.left = -30
-			this.shadowLight.shadow.camera.right = 30;
-			this.shadowLight.shadow.camera.top = 30;
-			this.shadowLight.shadow.camera.bottom = -30;
+			this.shadowLight.shadow.camera.left = -60
+			this.shadowLight.shadow.camera.right = 60;
+			this.shadowLight.shadow.camera.top = 60;
+			this.shadowLight.shadow.camera.bottom = -60;
+			this.shadowLight.shadow.normalBias = 0.25;
 			console.log(this.shadowLight.shadow.camera)
 			app.scene.add(this.shadowLight);
 			app.scene.add(this.shadowLight.target);
@@ -766,12 +767,21 @@ export default class Player extends THREE.Object3D {
 			|| !center.equals(this.buildCenterPrevious) 
 			|| isPlacing){
 
-			this.buildWireframe.scale.copy( new THREE.Vector3(1,1,1).multiplyScalar(this.buildConfiguration.constructive ? 1.1 : 0.9) )
+			this.buildWireframe.scale.copy( new THREE.Vector3(1,1,1).multiplyScalar(this.buildConfiguration.constructive ? 1.2 : 1.0) )
 			this.buildWireframe.position.copy( center )
 			this.buildWireframe.setRotationFromEuler( this.buildConfiguration.rotation )
+			
+			this.buildWireframe.geometry.computeBoundingBox();
+			const bbox = new THREE.Box3();
+			bbox.setFromObject(this.buildWireframe);
+			const extents = new THREE.Vector3(
+				Math.ceil(bbox.max.x - bbox.min.x + 1),
+				Math.ceil(bbox.max.y - bbox.min.y + 1),
+				Math.ceil(bbox.max.z - bbox.min.z + 1),
+			)
 
 			//tell chunk to change the terrain
-			app.terrainController.adjust( center, this.buildConfiguration, !isPlacing );
+			app.terrainController.adjust( center, extents, this.buildConfiguration, !isPlacing );
 			app.terrainController.updateInstancedObjects();
 
 			this.buildCenterPrevious = center;

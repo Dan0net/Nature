@@ -63,7 +63,7 @@ export default [
         size: new THREE.Vector3(1, 4, 0),
         material: 1,
         align: 'center',
-        rotation: new THREE.Euler(Math.PI/2,0,0, 'ZYX'),
+        rotation: new THREE.Euler(Math.PI/2,0,0, 'XYZ'),
         gridSnap: false,
         wireframeGeometry: new THREE.CylinderGeometry(0.5, 0.5, 4, 8, 4)
     },
@@ -87,7 +87,7 @@ export default [
         align: 'base',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.CylinderGeometry(4, 4, 4, 8, 4)
+        wireframeGeometry: new THREE.CylinderGeometry(4, 4, 8, 8, 4)
     },
     {
         name: 'small cylinder',

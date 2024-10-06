@@ -123,7 +123,6 @@ function generateGrid( { gridSize, terrainScale, offset } ) {
 
 	const ground = 0;
 	const yOffset = offset.y * gridSize.y;
-	console.log(yOffset)
 
 	for ( var x = 0; x < gridSize.x; x ++ ) {
 
