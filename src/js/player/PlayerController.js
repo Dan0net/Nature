@@ -170,7 +170,7 @@ export default class Player extends THREE.Object3D {
 			//lights
 			const skyColor = 0xB1E1FF;  // light blue
 			const groundColor = 0xB97A20;  // brownish orange
-			const Hintensity = 0.1;
+			const Hintensity = 0.5;
 			const Hlight = new THREE.HemisphereLight(skyColor, groundColor, Hintensity);
 			app.scene.add(Hlight);
 
