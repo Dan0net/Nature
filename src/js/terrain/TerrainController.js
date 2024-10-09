@@ -12,6 +12,7 @@ import Fog from '../instanceLods/fog/Fog';
 import Boulder from '../instanceLods/boulder/Boulder';
 import Pedestal from '../instanceLods/pedestal/Pedestal';
 import BerryBush from '../instanceLods/berry-bush/BerryBush';
+import Light from '../instanceLods/light/Light';
 
 // eslint-disable-next-line no-unused-vars
 export default class TerrainController extends VolumetricTerrain {
@@ -52,6 +53,7 @@ export default class TerrainController extends VolumetricTerrain {
 		this.upperBoulderHeightLimit = this.gridSize.y * 0.55;
 
 		this.instancedObjects = {
+			"Light": new Light(this, this.grassViewDistance)
 			// "Grass": new Grass( this, this.grassViewDistance ),
 			// "Tree": new Trees( this, this.treeViewDistance ),
 			// "Fern": new Fern( this, this.fernViewDistance ),

@@ -2,6 +2,18 @@ import * as THREE from 'three';
 
 export default [
     {
+        name: 'light',
+        shape: null,
+        instanceModel: 'Light',
+        constructive: true,
+        size: new THREE.Vector3(2, 2, 2),
+        material: 2,
+        align: 'base',
+        rotation: new THREE.Euler(0,0,0, 'XYZ'),
+        gridSnap: false,
+        wireframeGeometry: new THREE.BoxGeometry( 1,1,1 ),
+    },
+    {
         name: 'wall',
         shape: 'cube',
         constructive: true,

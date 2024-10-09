@@ -201,7 +201,8 @@ export default class VolumetricChunk {
 			indices,
 			vertices,
 			adjusted,
-			bary
+			bary,
+			light
 		} = data;
 
 		if ( indices.length === 0 ) return;
@@ -250,26 +251,29 @@ export default class VolumetricChunk {
 
 		const indexBufferAttribute = new THREE.BufferAttribute( indices, 1 )
 		buffer.setIndex( indexBufferAttribute );
+		indexBufferAttribute.needsUpdate = true;
 
 		const positionBufferAttribute = new THREE.Float32BufferAttribute( vertices, 3 )
 		buffer.setAttribute( 'position', positionBufferAttribute );
+		positionBufferAttribute.needsUpdate = true;
 		
 		const adjustedBufferAttribute = new THREE.BufferAttribute( adjusted, 3 )
 		buffer.setAttribute( 'adjusted', adjustedBufferAttribute );
+		adjustedBufferAttribute.needsUpdate = true;
 
 		const baryBufferAttribute = new THREE.BufferAttribute( bary, 3 )
 		buffer.setAttribute( 'bary', baryBufferAttribute );
+		baryBufferAttribute.needsUpdate = true;
+
+		const lightBufferAttribute = new THREE.BufferAttribute( light, 1 )
+		buffer.setAttribute( 'light', lightBufferAttribute );
+		lightBufferAttribute.needsUpdate = true;
 		
 		// meshObjs.indices.set(indices)
-		indexBufferAttribute.needsUpdate = true;
 
 		// meshObjs.vertices.set(vertices)
-		positionBufferAttribute.needsUpdate = true;
 
 		// meshObjs.adjusted.set(adjusted)
-		adjustedBufferAttribute.needsUpdate = true;
-		
-		baryBufferAttribute.needsUpdate = true;
 
 		buffer.computeVertexNormals();
 		buffer.computeBoundsTree();
@@ -320,6 +324,7 @@ export default class VolumetricChunk {
 		if ( useTemporaryGrid ) {
 			this.gridTemp.set(this.grid)
 			this.adjustedIndicesTemp.set(this.adjustedIndices);
+			this.lightIndicesTemp.set(this.lightIndices);
 		}
 
 		this.adjustGrid( localCenter, buildExtents, buildConfiguration );

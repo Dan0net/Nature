@@ -14,68 +14,71 @@ self.onmessage = ( { data } ) => {
 
 };
 
-function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
+function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightIndices } ) {
 
 	surfaceNetEngine.createSurface( grid, [ gridSize.x, gridSize.y, gridSize.z ] ).then( generatedSurface => {
 		// const topvertmap = {};
 
 		const indices = new Uint16Array( generatedSurface.faces.length * 2 * 3 ); //2 faces per generated face, 3 vertices
 		const vertices = new Float32Array( generatedSurface.faces.length * 2 * 3 * 3 ); //2 faces per generated face, 3 vertices, 3 xyz coords
-		const bary = new Float32Array( generatedSurface.vertices.length * 2 * 3 * 3 ); //2 faces per generated face, 3 vertices, 3 uxw coords
-		const adjusted = new Int8Array( generatedSurface.vertices.length * 2 * 3 * 3 ); //2 faces per generated face, 3 vertices, 3 material inds
+		const bary = new Float32Array( generatedSurface.faces.length * 2 * 3 * 3 ); //2 faces per generated face, 3 vertices, 3 uxw coords
+		const adjusted = new Int8Array( generatedSurface.faces.length * 2 * 3 * 3 ); //2 faces per generated face, 3 vertices, 3 material inds
+		const light = new Float32Array( generatedSurface.faces.length * 2 * 3 ); //2 faces per generated face, 3 vertices, 1 light value
 
-		// const adjusted = new Int8Array( generatedSurface.vertices.length * 4 );
+		const stack = [];
+		for ( let i = 0; i < lightIndices.length; i ++ ) {
+			const intensity = lightIndices[i];
+			if (intensity === 1) {
+				const z = Math.floor(i / ( gridSize.x * gridSize.y ));
+				const y = Math.floor((i - (z * ( gridSize.x * gridSize.y ))) / gridSize.z);
+				const x = i -  (z * ( gridSize.x * gridSize.y )) - (y * gridSize.z);
+				stack.push({ x, y, z, intensity: 2 });
+				console.log(x,y,z,intensity)
+			}
+		}
+		function lightFill3D(decayFactor) {	
+			while (stack.length > 0) {
+				const { x, y, z, intensity } = stack.pop();
+				// console.log('i', intensity)
+				// Check if coordinates are out of bounds
+				if (x < 0 || x >= gridSize.x || y < 0 || y >= gridSize.y || z < 0 || z >= gridSize.z) {
+					continue;
+				}
 
-
-		let x, y, z, terrainHeight, smoothRange = 2, topIndex = 0;
-		for ( let i = 0; i < generatedSurface.vertices.length; i ++ ) {
-
-			let v = generatedSurface.vertices[ i ];
-
-			// fix z-fighting
-			// if ( v[ 0 ] < 0.3 ) v[ 1 ] -= 0.01;
-			// if ( v[ 2 ] < 0.3 ) v[ 1 ] -= 0.01;
-
-			// vertices[ i * 3 + 0 ] = v[ 0 ];
-			// vertices[ i * 3 + 1 ] = v[ 1 ];
-			// vertices[ i * 3 + 2 ] = v[ 2 ];
-
-			x = Math.round( v[ 0 ] );
-			y = v[ 1 ];
-			z = Math.round( v[ 2 ] );
-			terrainHeight = terrainHeights[ z * gridSize.x + x ];
-			
-			// let a = adjustedIndices[( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x];
-			// adjusted[ i * 4 + 0 ] = (a == 0 ? 1 : 0);
-			// adjusted[ i * 4 + 1 ] = (a == 1 ? 1 : 0);
-			// adjusted[ i * 4 + 2 ] = (a == 2 ? 1 : 0);
-			// adjusted[ i * 4 + 3 ] = (a == 3 ? 1 : 0);
-
-			// if ( y < terrainHeight ) {
-
-			// 	underground[ i ] = ( y > terrainHeight - smoothRange ) ? ( terrainHeight - y ) / smoothRange : 1;
-
-			// } else {
-
-			// 	underground[ i ] = 0;
-			// 	topvertmap[ i ] = topIndex ++;
-
-			// }
-
+				const p = ( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x;
+				// console.log(lightIndices[p], intensity)
+				// If current intensity is lower than the stored value, skip
+				if (lightIndices[p] >= intensity) {
+					continue;
+				}
+				// Update voxel with the new intensity
+				lightIndices[p] = intensity;
+		
+				// Calculate the new intensity after applying decay
+				const newIntensity = intensity - decayFactor;
+				// console.log('ni', intensity, decayFactor, newIntensity)
+				// Push neighboring voxels onto the stack
+				stack.push({ x: x + 1, y, z, intensity: newIntensity }); // Right
+				stack.push({ x: x - 1, y, z, intensity: newIntensity }); // Left
+				stack.push({ x, y: y + 1, z, intensity: newIntensity }); // Up
+				stack.push({ x, y: y - 1, z, intensity: newIntensity }); // Down
+				stack.push({ x, y, z: z + 1, intensity: newIntensity }); // Forward
+				stack.push({ x, y, z: z - 1, intensity: newIntensity }); // Backward
+			}
 		}
 
+		lightFill3D(0.1);
 
-		// let topindices = [];
-		// const topvertices = new Float32Array( Object.keys( topvertmap ).length * 3 );
-
-		const getMaterialID = (v) => {
+		const getMaterialLightValue = (v) => {
 			x = Math.round( v[ 0 ] );
 			y = v[ 1 ];
 			z = Math.round( v[ 2 ] );
 			terrainHeight = terrainHeights[ z * gridSize.x + x ];
 			
-			const a = adjustedIndices[( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x];
-			return a;
+			const p = ( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x;
+			const m = adjustedIndices[p];
+			const l = lightIndices[p];
+			return [m, l];
 		};
 
 		const generateVertexInfo = (i, j, v, m) => {
@@ -103,9 +106,9 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 			const vi1 = i * 6 + (o) + 1;
 			const vi2 = i * 6 + (o) + 2;
 			
-			const m0 = getMaterialID( v0 );
-			const m1 = getMaterialID( v1 );
-			const m2 = getMaterialID( v2 );
+			const [m0, l0] = getMaterialLightValue( v0 );
+			const [m1, l1] = getMaterialLightValue( v1 );
+			const [m2, l2] = getMaterialLightValue( v2 );
 
 			generateVertexInfo(vi0 * 3, 0, v0, [m0, m1, m2]);
 			generateVertexInfo(vi1 * 3, 1, v1, [m0, m1, m2]);
@@ -114,6 +117,10 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 			indices[ i * 6 + o + 0 ] = vi0;
 			indices[ i * 6 + o + 1 ] = vi1;
 			indices[ i * 6 + o + 2 ] = vi2;
+
+			light[ i * 6 + o + 0 ] = l0;
+			light[ i * 6 + o + 1 ] = l1;
+			light[ i * 6 + o + 2 ] = l2;
 		};
 
 		for ( let i = 0; i < generatedSurface.faces.length; i ++ ) {
@@ -121,39 +128,7 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 			generateFaceInfo(i, 0, [1, 0, 2]);
 			generateFaceInfo(i, 3, [3, 2, 0]);
 
-			// indices[ i * 6 + 0 ] = f[ 1 ];
-			// indices[ i * 6 + 1 ] = f[ 0 ];
-			// indices[ i * 6 + 2 ] = f[ 2 ];
-
-			// indices[ i * 6 + 3 ] = f[ 3 ];
-			// indices[ i * 6 + 4 ] = f[ 2 ];
-			// indices[ i * 6 + 5 ] = f[ 0 ];
-
-
-			// if ( topvertmap[ f[ 0 ] ] || topvertmap[ f[ 1 ] ] || topvertmap[ f[ 2 ] ] || topvertmap[ f[ 3 ] ] ) {
-
-			// 	const i0 = topvertmap[ f[ 0 ] ];
-			// 	const i1 = topvertmap[ f[ 1 ] ];
-			// 	const i2 = topvertmap[ f[ 2 ] ];
-			// 	const i3 = topvertmap[ f[ 3 ] ];
-
-			// 	topindices.push( i1, i0, i2 );
-			// 	topindices.push( i3, i2, i0 );
-
-			// }
-
 		}
-
-		// for ( let key of Object.keys( topvertmap ) ) {
-
-		// 	const v = generatedSurface.vertices[ key ];
-		// 	topvertices[ topvertmap[ key ] * 3 + 0 ] = v[ 0 ];
-		// 	topvertices[ topvertmap[ key ] * 3 + 1 ] = v[ 1 ];
-		// 	topvertices[ topvertmap[ key ] * 3 + 2 ] = v[ 2 ];
-
-		// }
-
-		// topindices = new Uint16Array( topindices );
 
 		self.postMessage(
 			{
@@ -163,7 +138,8 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 				// topindices,
 				// topvertices,
 				adjusted,
-				bary
+				bary,
+				light
 			},
 			[
 				indices.buffer,
@@ -172,7 +148,8 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 				// topindices.buffer,
 				// topvertices.buffer,
 				adjusted.buffer,
-				bary.buffer
+				bary.buffer,
+				light.buffer
 			]
 		);
 

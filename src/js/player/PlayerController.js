@@ -80,25 +80,12 @@ export default class Player extends THREE.Object3D {
 		//build marker
 		this.buildMarker = new BuildMarker();
 		this.buildPreset = 0;
-		this.buildConfiguration = Object.assign({}, BuildPresets[0])
-		this.buildConfiguration.needsUpdating = true;
+		// this.buildConfiguration = Object.assign({}, BuildPresets[0])
+		// this.buildConfiguration.needsUpdating = true;
 		this.buildMaterial = 0;
 		this.maxBuildMaterials = 4;
-		console.log(this.buildConfiguration)
 		this.buildCenterPrevious;
-
-		this.buildWireframeGeometry = new THREE.WireframeGeometry(
-			this.buildConfiguration.wireframeGeometry
-		)
-
-		this.buildWireframeMaterial = new THREE.LineBasicMaterial( { 
-			color: 0xff0000
-		 } );
-
-		this.buildWireframe = new THREE.LineSegments( 
-			this.buildWireframeGeometry, 
-			this.buildWireframeMaterial 
-		);
+		this.buildInstanceModel;
 	}
 
 	eat() {
@@ -192,23 +179,32 @@ export default class Player extends THREE.Object3D {
 			this.shadowLight.shadow.camera.top = 60;
 			this.shadowLight.shadow.camera.bottom = -60;
 			this.shadowLight.shadow.normalBias = 0.25;
-			console.log(this.shadowLight.shadow.camera)
 			app.scene.add(this.shadowLight);
 			app.scene.add(this.shadowLight.target);
 
 			const cameraHelper = new THREE.CameraHelper(this.shadowLight.shadow.camera);
 			app.scene.add(cameraHelper);
 		
-
 			const loader = new THREE.CubeTextureLoader();
 			loader.setPath( 'resources/images/skybox/' );
 			const textureCube = loader.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
 			app.scene.background = textureCube;
 
-			console.log(app.scene.background)
+			// build
+
+			this.adjustBuildShape( 0 );
+
 			app.scene.add(this.buildMarker);
 			this.buildMarker.visible = false;
 
+			this.buildWireframeMaterial = new THREE.LineBasicMaterial( { 
+				color: 0xff0000
+			 } );
+	
+			this.buildWireframe = new THREE.LineSegments( 
+				this.buildWireframeGeometry, 
+				this.buildWireframeMaterial 
+			);
 			app.scene.add(this.buildWireframe);
 		}
 
@@ -706,21 +702,32 @@ export default class Player extends THREE.Object3D {
 	//   "888" `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o
 
 	adjustBuildShape ( delta ) {
-		this.buildPreset = (this.buildPreset + delta + BuildPresets.length) % BuildPresets.length;
+		this.buildPreset = delta === 0 ? 0 : (this.buildPreset + delta + BuildPresets.length) % BuildPresets.length;
 		this.buildConfiguration = Object.assign({}, BuildPresets[this.buildPreset]);
 		console.log(this.buildPreset, this.buildConfiguration)
 
-		// update wireframe geom
-		this.buildWireframeGeometry = new THREE.WireframeGeometry(
-			this.buildConfiguration.wireframeGeometry
-		)
+		// instance model
+		if (this.buildConfiguration.instanceModel) {
+			this.buildInstanceModel = app.terrainController.instancedObjects[this.buildConfiguration.instanceModel].getModel();
+			app.scene.add(this.buildInstanceModel);
+		} else {
+			if (this.buildInstanceModel) {
+				app.scene.remove(this.buildInstanceModel);
+				this.buildInstanceModel = null;
+			}
+			// update wireframe geom
+			this.buildWireframeGeometry = new THREE.WireframeGeometry(
+				this.buildConfiguration.wireframeGeometry
+			)
 
-		this.buildWireframe.geometry = this.buildWireframeGeometry
-		this.buildWireframe.geometry.verticiesNeedUpdate = true;
+			this.buildWireframe.geometry = this.buildWireframeGeometry
+			this.buildWireframe.geometry.verticiesNeedUpdate = true;
 
-		//update wireframe material
-		this.buildWireframeMaterial.color.set(this.buildConfiguration.constructive ? 0x00FF00 : 0xFF0000);
-		this.buildWireframeMaterial.needsUpdate = true;
+			//update wireframe material
+			this.buildWireframeMaterial.color.set(this.buildConfiguration.constructive ? 0x00FF00 : 0xFF0000);
+			this.buildWireframeMaterial.needsUpdate = true;
+		}
+		console.log(this.buildInstanceModel);
 
 		this.buildConfiguration.needsUpdating = true;
 	}
@@ -791,9 +798,18 @@ export default class Player extends THREE.Object3D {
 				Math.ceil(bbox.max.z - bbox.min.z + 1),
 			)
 
-			//tell chunk to change the terrain
-			app.terrainController.adjust( center, extents, this.buildConfiguration, !isPlacing );
-			app.terrainController.updateInstancedObjects();
+			if (this.buildConfiguration.instanceModel) {
+				//update instance model placement
+				this.buildInstanceModel.position.copy(center);
+	
+				return;
+			} else {
+				//tell chunk to change the terrain
+				app.terrainController.adjust( center, extents, this.buildConfiguration, !isPlacing );
+				app.terrainController.updateInstancedObjects();
+			}
+
+			
 
 			this.buildCenterPrevious = center;
 			this.buildConfiguration.needsUpdating = false;

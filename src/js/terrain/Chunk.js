@@ -15,12 +15,16 @@ export default class Chunk extends VolumetricChunk {
 		this.adjustedIndices = new Int8Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
 		this.adjustedIndicesTemp = new Int8Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
 
+		this.lightBuffer = [];
+		this.lightIndices = new Float32Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
+		this.lightIndicesTemp = new Float32Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
+
 	}
 
 	flipMesh() {
 
 		super.flipMesh();
-		// this.sampler = new MeshSurfaceSampler( this.mesh ).build();
+		// if (this.mesh) this.sampler = new MeshSurfaceSampler( this.mesh ).build();
 		// this.showLevel();
 
 	}
@@ -35,7 +39,8 @@ export default class Chunk extends VolumetricChunk {
 					grid: this.useTemporaryGrid ? this.gridTemp : this.grid,
 					gridSize: this.terrain.gridSize,
 					terrainHeights: this.terrainHeights,
-					adjustedIndices: this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices
+					adjustedIndices: this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices,
+					lightIndices: this.useTemporaryGrid ? this.lightIndicesTemp : this.lightIndices
 				},
 				async ( { data } ) => {
 
@@ -66,23 +71,23 @@ export default class Chunk extends VolumetricChunk {
 					this.gridTemp = new Float32Array(data.grid);
 					this.terrainHeights = data.terrainHeights;
 
-					console.log('a')
 					this.adjust( 
 						this.position.clone().add(
 							new THREE.Vector3(5,5,5)
 						), 
 						new THREE.Vector3(6,6,6),
-						BuildPresets[2], 
+						BuildPresets[3], 
 						false 
 					);
 
 					if ( this.terrain.DB ) {
 
 						const data = await this.terrain.DB.getAll( this.chunkKey );
-						for ( let { index, value, adjust } of data ) {
+						for ( let { index, value, adjust, light } of data ) {
 
 							this.grid[ index ] = value;
 							this.adjustedIndices[ index ] = adjust;
+							this.lightIndices[ index ] = light;
 
 						}
 
@@ -116,15 +121,18 @@ export default class Chunk extends VolumetricChunk {
 
 	saveGridPosition( gridPosition, materialInd ) {
 		const a = this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices;
+		const b = this.useTemporaryGrid ? this.lightIndicesTemp : this.lightIndices;
 
 		const index = this.gridIndex( gridPosition.x, gridPosition.y, gridPosition.z );
 		a[ index ] = materialInd;
+		b[ index ] = 1.0;
 
 		if ( !this.useTemporaryGrid) {
 			if ( this.terrain.DB ) this.adjustedBuffer.push( { 
 				index, 
 				value: this.grid[ index ], 
-				adjust: this.adjustedIndices [index] 
+				adjust: this.adjustedIndices [index],
+				light: this.lightIndicesTemp [index] 
 			} );
 		}
 

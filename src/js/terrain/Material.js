@@ -227,13 +227,13 @@ const terrainMaterial= (envmap) => {
     //     normalScale: new THREE.Vector2(2, 2)
     // } );
 
-    const mat = new THREE.MeshPhongMaterial( {
+    const mat = new THREE.MeshStandardMaterial( {
         map: aoMap, // enables UV's in shader
         // normalMap: normalMap,
         // aoMap: aoMap,
         // // displacementMap: displacementMap,
         // roughnessMap: roughnessMap,
-        // envmap: envmap,
+        envmap: envmap,
         // // glslVersion: THREE.GLSL3
         // // normalScale: new THREE.Vector2(2, 2)
         // specular: new THREE.Color(.5,.5,.5),
@@ -255,8 +255,10 @@ const terrainMaterial= (envmap) => {
         shader.vertexShader = `
             attribute vec3 adjusted;
             attribute vec3 bary;
+            attribute float light;
             flat out vec3 vAdjusted;
             varying vec3 vBary;
+            varying float vLight;
             varying vec3 vPos;
             varying vec3 vNormal2;
         ` + shader.vertexShader
@@ -268,6 +270,7 @@ const terrainMaterial= (envmap) => {
                 vNormal2 = normal;
                 vAdjusted = adjusted;
                 vBary = bary;
+                vLight = light;
                 `
             );
         
@@ -279,6 +282,7 @@ const terrainMaterial= (envmap) => {
             varying vec3 vNormal2;
             flat in vec3 vAdjusted;
             varying vec3 vBary;
+            varying float vLight;
         ` + shader.fragmentShader
             .replace(
                 '#include <map_pars_fragment>',
@@ -330,7 +334,7 @@ const terrainMaterial= (envmap) => {
         shader.fragmentShader = shader.fragmentShader.replace(
             'vec4 diffuseColor = vec4( diffuse, opacity );',
             `
-            vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb, opacity );
+            vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * vLight, opacity );
             `
         );
 
