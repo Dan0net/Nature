@@ -408,7 +408,7 @@ export default class UIController {
 	updateInventorySlot( nSlot ) {
 		app.player.inventorySlot = nSlot;
 
-		this.elements.inventoryItems.visible = false;
+		this.elements.inventoryItems.classList.add( 'slotSelected' );
 
 		if ( nSlot === 1) this.elements.inventorySlot1.visible = true;
 	}
