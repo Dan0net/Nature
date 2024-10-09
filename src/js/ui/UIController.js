@@ -31,7 +31,20 @@ export default class UIController {
 			crystalAmount: document.getElementById( 'crystal-amount' ),
 			berryAmount: document.getElementById( 'berry-amount' ),
 			foodAmount: document.getElementsByClassName( 'food-level' ),
-
+			
+			inventory: document.getElementById( 'inventory-hud' ),
+			inventoryBar: document.getElementById( 'inventory-bar' ),
+			inventorySlots: document.getElementsByClassName( 'inventory-item' ),
+			inventorySlot1:  document.getElementById( 'inventory-item-1' ),
+			inventorySlot2:  document.getElementById( 'inventory-item-2' ),
+			inventorySlot3:  document.getElementById( 'inventory-item-3' ),
+			inventorySlot4:  document.getElementById( 'inventory-item-4' ),
+			inventorySlot5:  document.getElementById( 'inventory-item-5' ),
+			inventorySlot6:  document.getElementById( 'inventory-item-6' ),
+			inventorySlot7:  document.getElementById( 'inventory-item-7' ),
+			inventorySlot8:  document.getElementById( 'inventory-item-8' ),
+			inventorySlot9:  document.getElementById( 'inventory-item-9' ),
+			inventorySlot0:  document.getElementById( 'inventory-item-0' )
 		};
 
 		this.addEvents();
@@ -53,7 +66,8 @@ export default class UIController {
 		this.elements.backButton.addEventListener( 'click', ()=>this.showSettings( false ), true );
 
 		this.elements.mouseSensitivity.addEventListener( 'input', this.updateValueLabel, true );
-
+		
+		this.elements.threeDiv.addEventListener( 'onmousedown', this.updateInventoryDisplay, true );
 	}
 
 	loadFromStorage() {
@@ -331,7 +345,7 @@ export default class UIController {
 
 		document.addEventListener( "mousemove", onMouseMove, false );
 		app.renderer.domElement.requestPointerLock();
-		if ( 'pointerLockElement' in document ) document.addEventListener( 'pointerlockchange', this.pointerLockChangeCallback.bind( this ), false );
+		// if ( 'pointerLockElement' in document ) document.addEventListener( 'pointerlockchange', this.pointerLockChangeCallback.bind( this ), false );
 
 	}
 
@@ -339,7 +353,7 @@ export default class UIController {
 
 		document.removeEventListener( "mousemove", onMouseMove, false );
 
-		if ( 'pointerLockElement' in document ) document.removeEventListener( 'pointerlockchange', this.pointerLockChangeCallback.bind( this ), false );
+		// if ( 'pointerLockElement' in document ) document.removeEventListener( 'pointerlockchange', this.pointerLockChangeCallback.bind( this ), false );
 
 	}
 
@@ -369,6 +383,34 @@ export default class UIController {
 
 		if ( ! document.pointerLockElement ) this.stopGame();
 
+	}
+
+	                                                                                                    
+	// 88                                                                                                  
+	// ""                                                      ,d                                          
+	//                                                         88                                          
+	// 88  8b,dPPYba,   8b       d8   ,adPPYba,  8b,dPPYba,  MM88MMM  ,adPPYba,   8b,dPPYba,  8b       d8  
+	// 88  88P'   `"8a  `8b     d8'  a8P_____88  88P'   `"8a   88    a8"     "8a  88P'   "Y8  `8b     d8'  
+	// 88  88       88   `8b   d8'   8PP"""""""  88       88   88    8b       d8  88           `8b   d8'   
+	// 88  88       88    `8b,d8'    "8b,   ,aa  88       88   88,   "8a,   ,a8"  88            `8b,d8'    
+	// 88  88       88      "8"       `"Ybbd8"'  88       88   "Y888  `"YbbdP"'   88              Y88'     
+	//                                                                                            d8'      
+	//                                                                                           d8'       
+
+	updateInventoryDisplay() {
+		app.player.showInventory = !app.player.showInventory;
+		console.log(app.player.showInventory)
+
+		if (app.player.showInventory) this.lockPointer();
+		if (!app.player.showInventory) this.exitPointerLock();
+	}
+
+	updateInventorySlot( nSlot ) {
+		app.player.inventorySlot = nSlot;
+
+		this.elements.inventoryItems.visible = false;
+
+		if ( nSlot === 1) this.elements.inventorySlot1.visible = true;
 	}
 
 }

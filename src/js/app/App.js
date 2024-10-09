@@ -27,11 +27,9 @@ export default class App {
 			antialias: true,
 			logarithmicDepthBuffer: true
 		} );
-		const gl = this.renderer.getContext();
-		gl.getExtension('GL_EXT_fragment_shader_barycentric');
 
-		console.log("WebGL Version: ", gl.getParameter(gl.VERSION));
-		console.log(gl.getSupportedExtensions());
+		// console.log("WebGL Version: ", gl.getParameter(gl.VERSION));
+		// console.log(gl.getSupportedExtensions());
 
 		this.uiController = new UIController();
 		this.terrainController;
@@ -57,7 +55,18 @@ export default class App {
 			// grab: 'KeyF',
 			// zoom: 'KeyC',
 			eat: 'KeyE',
-			escape: 'Escape'
+			escape: 'Escape',
+			slot1: 'Digit1',
+			slot2: 'Digit2',
+			slot3: 'Digit3',
+			slot4: 'Digit4',
+			slot5: 'Digit5',
+			slot6: 'Digit6',
+			slot7: 'Digit7',
+			slot8: 'Digit8',
+			slot9: 'Digit9',
+			slot0: 'Digit0',
+			inventory: 'Tab'
 		};
 
 	}

@@ -201,6 +201,30 @@ o888o o888o o888o `8oooooo.  `Y888""8o o888o o888o o888o `Y8bod8P'
     border-radius: 3px;
 }
 
+#inventory {
+    display: none;
+}
+
+#inventory-bar {
+    position: absolute;
+    bottom: 50px;
+    left: calc(50vw - 160px);
+    width: 100%;
+    height: 40px;
+    
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.inventory-item {
+    display: block;
+    width: 64px;
+    height: 64px;
+    background-color: white;
+    border-radius: 64px;
+}
+
 
 
 

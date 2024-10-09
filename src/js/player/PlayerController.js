@@ -74,6 +74,9 @@ export default class Player extends THREE.Object3D {
 		this.flyMode = false;
 		this.godMode = false;
 
+		//inventory
+		this.inventoryVisible = false;
+
 		//build marker
 		this.buildMarker = new BuildMarker();
 		this.buildPreset = 0;
@@ -500,7 +503,7 @@ export default class Player extends THREE.Object3D {
 	//                   o888o
 
 	keyPressed( e ) {
-		// console.log(e.code)
+		console.log(e.code)	
 		if ( ! app.running ) return;
 
 		if ( e.code == app.key.zoom ) app.zoom( true );
@@ -520,7 +523,18 @@ export default class Player extends THREE.Object3D {
 		if ( e.code == app.key.nextMaterial ) this.adjustBuildMaterial(1);
 		if ( e.code == app.key.previousMaterial ) this.adjustBuildMaterial(-1);
 		if ( e.code == app.key.snapMode ) this.buildConfiguration.gridSnap = !this.buildConfiguration.gridSnap
-
+		
+		if ( e.code == app.key.inventory ) app.uiController.updateInventoryDisplay();
+		if ( e.code == app.key.slot1 ) app.uiController.updateInventorySlot(1);
+		if ( e.code == app.key.slot2 ) app.uiController.updateInventorySlot(2);
+		if ( e.code == app.key.slot3 ) app.uiController.updateInventorySlot(3);
+		if ( e.code == app.key.slot4 ) app.uiController.updateInventorySlot(4);
+		if ( e.code == app.key.slot5 ) app.uiController.updateInventorySlot(5);
+		if ( e.code == app.key.slot6 ) app.uiController.updateInventorySlot(6);
+		if ( e.code == app.key.slot7 ) app.uiController.updateInventorySlot(7);
+		if ( e.code == app.key.slot8 ) app.uiController.updateInventorySlot(8);
+		if ( e.code == app.key.slot9 ) app.uiController.updateInventorySlot(9);
+		if ( e.code == app.key.slot0 ) app.uiController.updateInventorySlot(0);
 	}
 
 	keyReleased( e ) {
@@ -671,9 +685,6 @@ export default class Player extends THREE.Object3D {
 
 		this.buildConfiguration.needsUpdating = true;
 	}
-
-
-
 
 
 	//                 .o8      o8o                          .

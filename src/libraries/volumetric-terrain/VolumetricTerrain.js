@@ -491,7 +491,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 
 		// console.log(centerChunkCoord)
 
-		const extraMargin = 2;
+		const extraMargin = 3;
 		let loopRadius = buildConfiguration.size.x;
 
 		this.debugWireframe.position.copy(center);
