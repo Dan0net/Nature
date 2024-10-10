@@ -114,7 +114,7 @@ export default class Grass extends CachedInstancedLOD {
 	}
 
 	generateData( chunk ) {
-
+		console.log('grass gen')
 		const surfaceSampler = chunk.sampler;
 		const _position = new THREE.Vector3();
 		const _normal = new THREE.Vector3();
@@ -123,7 +123,7 @@ export default class Grass extends CachedInstancedLOD {
 
 		const modelMatrices = [];
 
-		for ( let i = 0; i < 900; i ++ ) {
+		for ( let i = 0; i < 50; i ++ ) {
 
 			let d, terrainHeight, adjusted, up = new THREE.Vector3( 0, 1, 0 );
 			let tries = 8;
@@ -135,8 +135,8 @@ export default class Grass extends CachedInstancedLOD {
 				adjusted = chunk.adjustedIndices[ chunk.gridIndex( Math.floor( _position.x ), Math.floor( _position.y ), Math.floor( _position.z ) ) ];
 				tries --;
 
-			} while ( tries > 0 && ( d < 0 || d > 0.12 || _position.y < terrainHeight || adjusted ) );
-
+			} while ( tries > 0 && ( d < 0 || d > 0.5 || _position.y < terrainHeight ) );
+			// console.log(_position, terrainHeight)
 			if ( tries === 0 ) continue;
 
 			if ( _position.y > terrainHeight ) {
@@ -152,6 +152,7 @@ export default class Grass extends CachedInstancedLOD {
 				dummy.quaternion.setFromUnitVectors( up, _normal );
 				dummy.rotateY( Math.random() * Math.PI );
 				dummy.updateMatrix();
+				// console.log(dummy.matrix);
 
 				modelMatrices.push( dummy.matrix.clone() );
 

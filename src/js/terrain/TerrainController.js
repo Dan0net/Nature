@@ -53,7 +53,7 @@ export default class TerrainController extends VolumetricTerrain {
 		this.upperBoulderHeightLimit = this.gridSize.y * 0.55;
 
 		this.instancedObjects = {
-			"Light": new Light(this, this.grassViewDistance)
+			"Light": new Light(this, this.grassViewDistance),
 			// "Grass": new Grass( this, this.grassViewDistance ),
 			// "Tree": new Trees( this, this.treeViewDistance ),
 			// "Fern": new Fern( this, this.fernViewDistance ),
@@ -297,12 +297,12 @@ export default class TerrainController extends VolumetricTerrain {
 	updatecurrentCoord( currentCoord, newChunks ) {
 
 		super.updatecurrentCoord( currentCoord, newChunks );
-		// this.updateInstancedObjects();
+		this.updateInstancedObjects();
 
 		if ( newChunks ) {
 
 			// this.updateChunkLODs();
-			// this.updateInstancedObjects( true );
+			this.updateInstancedObjects( true );
 
 			const chunkKey = this.getChunkKey( this.currentCoord );
 			// const treeAmount = ( this.instancedObjects.Tree.cachedData[ chunkKey ]?.tree.length || 0 );
@@ -337,7 +337,6 @@ export default class TerrainController extends VolumetricTerrain {
 	}
 
 	updateInstancedObjects( force = false ) {
-
 		let timer = 0;
 		for ( let name of Object.keys( this.instancedObjects ) ) {
 
@@ -356,7 +355,8 @@ export default class TerrainController extends VolumetricTerrain {
 	}
 
 	updateInstancedObject( name ) {
-
+		console.log('update instance obj', name)
+		
 		return new Promise( resolve => {
 
 			const object = this.instancedObjects[ name ];
@@ -365,27 +365,32 @@ export default class TerrainController extends VolumetricTerrain {
 			const playerCoord = this.getCoordFromPosition( app.player.position );
 
 			for ( let x = - object.viewDistance; x <= object.viewDistance; x ++ ) {
+				for ( let y = - object.viewDistance; y <= object.viewDistance; y ++ ) {
+					for ( let z = - object.viewDistance; z <= object.viewDistance; z ++ ) {
 
-				for ( let z = - object.viewDistance; z <= object.viewDistance; z ++ ) {
+						const chunkCoord = {
+							x: ( playerCoord?.x || 0 ) + x,
+							y: ( playerCoord?.y || 0 ) + y,
+							z: ( playerCoord?.z || 0 ) + z,
+						};
+						const key = this.getChunkKey( chunkCoord );
 
-					const chunkCoord = {
-						x: ( playerCoord?.x || 0 ) + x,
-						z: ( playerCoord?.z || 0 ) + z,
-					};
-					const key = this.getChunkKey( chunkCoord );
+						if ( object.hasData( key ) ) {
+							// console.log('updateInstances data', name, chunkCoord)
 
-					if ( object.hasData( key ) ) {
+							object.addCachedData( key );
 
-						object.addCachedData( key );
+						} else {
+							// console.log('updateInstances cdata', name, chunkCoord)
 
-					} else {
+							const chunk = this.chunks[ key ];
+							if ( chunk && chunk.sampler ) object.addChunkData( chunk );
+							// if ( chunk ) console.log('chunk ex')
 
-						const chunk = this.chunks[ key ];
-						if ( chunk ) object.addChunkData( chunk );
+						}
+
 
 					}
-
-
 				}
 
 			}
@@ -396,6 +401,42 @@ export default class TerrainController extends VolumetricTerrain {
 
 		} );
 
+	}
+
+		//                      88           88  
+	//                      88           88  
+	//                      88           88  
+	// ,adPPYYba,   ,adPPYb,88   ,adPPYb,88  
+	// ""     `Y8  a8"    `Y88  a8"    `Y88  
+	// ,adPPPPP88  8b       88  8b       88  
+	// 88,    ,88  "8a,   ,d88  "8a,   ,d88  
+	// `"8bbdP"Y8   `"8bbdP"Y8   `"8bbdP"Y8  
+										
+										
+																						
+	// 88                                                                                    
+	// 88                            ,d                                                      
+	// 88                            88                                                      
+	// 88  8b,dPPYba,   ,adPPYba,  MM88MMM  ,adPPYYba,  8b,dPPYba,    ,adPPYba,   ,adPPYba,  
+	// 88  88P'   `"8a  I8[    ""    88     ""     `Y8  88P'   `"8a  a8"     ""  a8P_____88  
+	// 88  88       88   `"Y8ba,     88     ,adPPPPP88  88       88  8b          8PP"""""""  
+	// 88  88       88  aa    ]8I    88,    88,    ,88  88       88  "8a,   ,aa  "8b,   ,aa  
+	// 88  88       88  `"YbbdP"'    "Y888  `"8bbdP"Y8  88       88   `"Ybbd8"'   `"Ybbd8"'  
+	addInstance( center, extents, buildConfiguration, isTemporary) {
+		if (isTemporary) return;
+
+		const dummy = new THREE.Object3D();
+		dummy.position.copy( center );
+		dummy.updateMatrix();
+		console.log(dummy.matrix);
+
+		const instancedObject = this.instancedObjects[buildConfiguration.instanceModel]
+		
+		instancedObject.addMatrices([dummy.matrix.clone()]);
+
+		instancedObject.update(app.player.position);
+
+		// modelMatrices.push( dummy.matrix.clone() );
 	}
 
 	//                              .o8                .               .oooooo.                          .
@@ -482,6 +523,10 @@ export default class TerrainController extends VolumetricTerrain {
 	adjustInstancedObjects( chunkKey, center, radius ) {
 
 		const chunk = this.getChunk( chunkKey );
+		console.log(chunk, chunkKey, center)
+		//todo unsure why chunk would be undefined
+		if (!chunk) return;
+
 		const point = chunk.position.clone().add( center.clone().multiply( this.terrainScale ) );
 
 		for ( let key of Object.keys( this.instancedObjects ) ) {

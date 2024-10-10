@@ -128,11 +128,11 @@ function generateGrid( { gridSize, terrainScale, offset } ) {
 
 		for ( var z = 0; z < gridSize.z; z ++ ) {
 
-			terrainHeights[ x + z * gridSize.x ] = 20;
+			terrainHeights[ x + z * gridSize.x ] = 5;
 
 			for ( var y = 0; y < gridSize.y; y ++ ) {
 
-				setGridValue( x, y, z, y + yOffset < 5 ? 0.5 : -0.5 );
+				setGridValue( x, y, z, y + yOffset <= 5 ? 0.5 : -0.5 );
 
 			}
 

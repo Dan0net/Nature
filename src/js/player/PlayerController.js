@@ -802,15 +802,12 @@ export default class Player extends THREE.Object3D {
 				//update instance model placement
 				this.buildInstanceModel.position.copy(center);
 	
-				return;
+				app.terrainController.addInstance( center, extents, this.buildConfiguration, !isPlacing );
 			} else {
 				//tell chunk to change the terrain
 				app.terrainController.adjust( center, extents, this.buildConfiguration, !isPlacing );
 				app.terrainController.updateInstancedObjects();
 			}
-
-			
-
 			this.buildCenterPrevious = center;
 			this.buildConfiguration.needsUpdating = false;
 		}

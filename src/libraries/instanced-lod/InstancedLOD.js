@@ -73,6 +73,7 @@ export default class InstancedLOD extends THREE.Object3D {
 	}
 
 	update( position ) {
+		console.log(this.matrices);
 
 		const levelCounts = new Array( this.levels.length ).fill( '' ).map( ()=>0 );
 
@@ -144,10 +145,13 @@ export default class InstancedLOD extends THREE.Object3D {
 
 	addMatrices( matrices ) {
 
-		for ( let matrix of matrices ) {
+		if (matrices){
 
-			this.matrices.push( matrix );
+			for ( let matrix of matrices ) {
 
+				this.matrices.push( matrix );
+
+			}
 		}
 
 	}

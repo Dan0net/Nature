@@ -5,6 +5,7 @@ export default [
         name: 'light',
         shape: null,
         instanceModel: 'Light',
+        lightValue: 1.0,
         constructive: true,
         size: new THREE.Vector3(2, 2, 2),
         material: 2,

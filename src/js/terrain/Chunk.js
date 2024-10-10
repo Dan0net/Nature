@@ -24,7 +24,8 @@ export default class Chunk extends VolumetricChunk {
 	flipMesh() {
 
 		super.flipMesh();
-		// if (this.mesh) this.sampler = new MeshSurfaceSampler( this.mesh ).build();
+		if (this.mesh) this.sampler = new MeshSurfaceSampler( this.mesh ).build();
+		// console.log(this.sampler)
 		// this.showLevel();
 
 	}
@@ -119,13 +120,13 @@ export default class Chunk extends VolumetricChunk {
 
 	// }
 
-	saveGridPosition( gridPosition, materialInd ) {
+	saveGridPosition( gridPosition, materialInd, lightValue = 0 ) {
 		const a = this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices;
 		const b = this.useTemporaryGrid ? this.lightIndicesTemp : this.lightIndices;
 
 		const index = this.gridIndex( gridPosition.x, gridPosition.y, gridPosition.z );
 		a[ index ] = materialInd;
-		b[ index ] = 1.0;
+		b[ index ] = lightValue;
 
 		if ( !this.useTemporaryGrid) {
 			if ( this.terrain.DB ) this.adjustedBuffer.push( { 

@@ -492,7 +492,6 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		// console.log(centerChunkCoord)
 
 		const extraMargin = 3;
-		let loopRadius = buildConfiguration.size.x;
 
 		this.debugWireframe.position.copy(center);
 		this.debugWireframe.scale.copy(extents);
@@ -518,9 +517,9 @@ export default class VolumetricTerrain extends THREE.Object3D {
 						Math.abs(coordDiff.x) <= 1 &&
 						Math.abs(coordDiff.y) <= 1 &&
 						Math.abs(coordDiff.z) <= 1 &&
-						( ( coordDiff.x > 0 ? this.gridSize.x : 0 ) + ( localCenter.x * -coordDiff.x ) - loopRadius - extraMargin <= 0 ) &&
-						( ( coordDiff.y > 0 ? this.gridSize.y : 0 ) + ( localCenter.y * -coordDiff.y ) - loopRadius - extraMargin <= 0 ) &&
-						( ( coordDiff.z > 0 ? this.gridSize.z : 0 ) + ( localCenter.z * -coordDiff.z ) - loopRadius - extraMargin <= 0 )
+						( ( coordDiff.x > 0 ? this.gridSize.x : 0 ) + ( localCenter.x * -coordDiff.x ) - extents.x - extraMargin <= 0 ) &&
+						( ( coordDiff.y > 0 ? this.gridSize.y : 0 ) + ( localCenter.y * -coordDiff.y ) - extents.y - extraMargin <= 0 ) &&
+						( ( coordDiff.z > 0 ? this.gridSize.z : 0 ) + ( localCenter.z * -coordDiff.z ) - extents.z - extraMargin <= 0 )
 						) {
 						if ( true ) {
 							chunk.adjust( center, extents, buildConfiguration, isTemporary );
@@ -533,6 +532,6 @@ export default class VolumetricTerrain extends THREE.Object3D {
 				}
 			}
 	// 	}
-	// }
-
+	// }																									
+																						
 }

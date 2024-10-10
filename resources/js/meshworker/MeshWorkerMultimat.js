@@ -26,45 +26,47 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 		const light = new Float32Array( generatedSurface.faces.length * 2 * 3 ); //2 faces per generated face, 3 vertices, 1 light value
 
 		const stack = [];
-		for ( let i = 0; i < lightIndices.length; i ++ ) {
-			const intensity = lightIndices[i];
-			if (intensity === 1) {
-				const z = Math.floor(i / ( gridSize.x * gridSize.y ));
-				const y = Math.floor((i - (z * ( gridSize.x * gridSize.y ))) / gridSize.z);
-				const x = i -  (z * ( gridSize.x * gridSize.y )) - (y * gridSize.z);
-				stack.push({ x, y, z, intensity: 2 });
-				console.log(x,y,z,intensity)
-			}
-		}
-		function lightFill3D(decayFactor) {	
-			while (stack.length > 0) {
-				const { x, y, z, intensity } = stack.pop();
-				// console.log('i', intensity)
-				// Check if coordinates are out of bounds
-				if (x < 0 || x >= gridSize.x || y < 0 || y >= gridSize.y || z < 0 || z >= gridSize.z) {
-					continue;
-				}
+		const gridXY = gridSize.x * gridSize.y; // Precompute grid size for efficiency
+		const gridZ = gridSize.z;
 
-				const p = ( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x;
-				// console.log(lightIndices[p], intensity)
-				// If current intensity is lower than the stored value, skip
-				if (lightIndices[p] >= intensity) {
-					continue;
-				}
-				// Update voxel with the new intensity
-				lightIndices[p] = intensity;
-		
-				// Calculate the new intensity after applying decay
-				const newIntensity = intensity - decayFactor;
-				// console.log('ni', intensity, decayFactor, newIntensity)
-				// Push neighboring voxels onto the stack
-				stack.push({ x: x + 1, y, z, intensity: newIntensity }); // Right
-				stack.push({ x: x - 1, y, z, intensity: newIntensity }); // Left
-				stack.push({ x, y: y + 1, z, intensity: newIntensity }); // Up
-				stack.push({ x, y: y - 1, z, intensity: newIntensity }); // Down
-				stack.push({ x, y, z: z + 1, intensity: newIntensity }); // Forward
-				stack.push({ x, y, z: z - 1, intensity: newIntensity }); // Backward
-			}
+		// Loop through the light indices
+		for (let i = 0; i < lightIndices.length; i++) {
+		if (grid[i] === 0.5) continue;
+
+		const intensity = lightIndices[i];
+		if (intensity === 1) {
+			const z = Math.floor(i / gridXY); // Precompute z index
+			const y = Math.floor((i - (z * gridXY)) / gridZ); // Precompute y index
+			const x = i - (z * gridXY) - (y * gridZ); // Precompute x index
+			stack.push([x, y, z, 2]); // Push to stack as array to reduce memory overhead
+		}
+		}
+
+		function lightFill3D(decayFactor) {
+		while (stack.length > 0) {
+			const [x, y, z, intensity] = stack.pop();
+
+			// Combined boundary checks for performance
+			if (x < 0 || x >= gridSize.x || y < 0 || y >= gridSize.y || z < 0 || z >= gridSize.z) continue;
+
+			const p = (z * gridXY) + (y * gridZ) + x;
+
+			if (lightIndices[p] >= intensity) continue;
+
+			lightIndices[p] = intensity;
+
+			if (grid[p] === 0.5) continue;
+
+			const newIntensity = intensity - decayFactor * (1.0 - (grid[p] + 0.5));
+
+			// Push neighboring voxels onto the stack
+			stack.push([x + 1, y, z, newIntensity]); // Right
+			stack.push([x - 1, y, z, newIntensity]); // Left
+			stack.push([x, y + 1, z, newIntensity]); // Up
+			stack.push([x, y - 1, z, newIntensity]); // Down
+			stack.push([x, y, z + 1, newIntensity]); // Forward
+			stack.push([x, y, z - 1, newIntensity]); // Backward
+		}
 		}
 
 		lightFill3D(0.1);

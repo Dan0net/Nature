@@ -328,6 +328,8 @@ export default class VolumetricChunk {
 		}
 
 		this.adjustGrid( localCenter, buildExtents, buildConfiguration );
+
+		if (!useTemporaryGrid) this.terrain.adjustInstancedObjects( this.chunkKey, center, 5 );
 	}
 
 	async adjustGrid( center, buildExtents, buildConfiguration ) {
@@ -337,9 +339,6 @@ export default class VolumetricChunk {
 			'cube': this.drawCube,
 			'cylinder': this.drawCylinder
 		}[buildConfiguration.shape]
-
-		//square loop around a sphere brush
-		let loopRadius = buildConfiguration.size.x;
 
 		let p;
 		let gridPosition = new THREE.Vector3();

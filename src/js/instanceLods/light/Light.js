@@ -19,9 +19,9 @@ export default class Light extends CachedInstancedLOD {
 
 	addObjects( models ) {
 
-		if ( models.grassModel && models.grassModelHigh ) {
+		if ( models.lightModel ) {
 
-			this.addLevel( models.lightModel, 100000, this.terrain.chunkSize * this.terrain.grassHighViewDistance );
+			this.addLevel( models.lightModel, 100000, 0 );
 
 		}
 

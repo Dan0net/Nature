@@ -20,6 +20,7 @@ export default class CachedInstancedLOD extends InstancedLOD {
 			const chunk = this.terrain.getChunk( key );
 			if ( ! chunk ||
                  Math.abs( chunk.offset.x - currentCoord.x ) > this.viewDistance ||
+                 Math.abs( chunk.offset.y - currentCoord.y ) > this.viewDistance ||
                  Math.abs( chunk.offset.z - currentCoord.z ) > this.viewDistance ) {
 
 				delete this.cachedData[ key ];
@@ -57,8 +58,9 @@ export default class CachedInstancedLOD extends InstancedLOD {
 	}
 
 	addChunkData( chunk ) {
-
 		const chunkKey = chunk.chunkKey;
+		// console.log(chunkKey)
+
 		if ( ! this.cachedData[ chunkKey ] ) {
 
 			this.cachedData[ chunkKey ] = this.generateData( chunk );
