@@ -61,9 +61,12 @@ export default class InstancedLOD extends THREE.Object3D {
 				object.material,
 				amount
 			);
-
+			console.log('add instance obj')
 			instancedObject.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
+			// instancedObject.frustumCulled = false;
+			object.geometry.computeBoundingBox();
 			this.add( instancedObject );
+			
 			instancedObjects.push( instancedObject );
 
 		}
@@ -162,6 +165,12 @@ export default class InstancedLOD extends THREE.Object3D {
 
 			for ( let instancedMesh of this.levels[ level ].object ) {
 
+				instancedMesh.computeBoundingBox();
+				instancedMesh.computeBoundingSphere();
+				console.log(instancedMesh.boundingBox)
+				console.log(instancedMesh.boundingSphere)
+				const boxHelper = new THREE.Box3Helper(instancedMesh.boundingBox, 0xff0000);
+				app.scene.add(boxHelper);
 				instancedMesh.instanceMatrix.needsUpdate = true;
 
 			}

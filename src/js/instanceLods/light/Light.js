@@ -1,5 +1,6 @@
 import CachedInstancedLOD from '../cached/CachedInstancedLOD';
 import { modelBank } from '../../modelloader/ModelLoader';
+import { Mesh } from 'three';
 
 export default class Light extends CachedInstancedLOD {
 
@@ -39,6 +40,7 @@ export default class Light extends CachedInstancedLOD {
 
 	getModel() {
 		const geo = new THREE.OctahedronGeometry(1, 0);
+		geo.computeBoundingBox();
 		// models.lightModel.geometry.translate( 0, - 0.051, 0 );
 		// models.lightModel.geometry.scale( 1.45, 1.25, 1.45 );
 
@@ -48,10 +50,14 @@ export default class Light extends CachedInstancedLOD {
 		
 		lightMaterial.needsUpdate = true;
 
-		return new THREE.Mesh(
+		const mesh = new THREE.Mesh(
 			geo,
 			lightMaterial
 		);
+
+		console.log(geo.boundingBox);
+
+		return mesh;
 	}
 
 	generateData( chunk ) {

@@ -403,17 +403,14 @@ export default class TerrainController extends VolumetricTerrain {
 
 	}
 
-		//                      88           88  
+	//                      88           88  
 	//                      88           88  
 	//                      88           88  
 	// ,adPPYYba,   ,adPPYb,88   ,adPPYb,88  
 	// ""     `Y8  a8"    `Y88  a8"    `Y88  
 	// ,adPPPPP88  8b       88  8b       88  
 	// 88,    ,88  "8a,   ,d88  "8a,   ,d88  
-	// `"8bbdP"Y8   `"8bbdP"Y8   `"8bbdP"Y8  
-										
-										
-																						
+	// `"8bbdP"Y8   `"8bbdP"Y8   `"8bbdP"Y8  						
 	// 88                                                                                    
 	// 88                            ,d                                                      
 	// 88                            88                                                      
@@ -422,6 +419,7 @@ export default class TerrainController extends VolumetricTerrain {
 	// 88  88       88   `"Y8ba,     88     ,adPPPPP88  88       88  8b          8PP"""""""  
 	// 88  88       88  aa    ]8I    88,    88,    ,88  88       88  "8a,   ,aa  "8b,   ,aa  
 	// 88  88       88  `"YbbdP"'    "Y888  `"8bbdP"Y8  88       88   `"Ybbd8"'   `"Ybbd8"'  
+	
 	addInstance( center, extents, buildConfiguration, isTemporary) {
 		if (isTemporary) return;
 
@@ -433,6 +431,7 @@ export default class TerrainController extends VolumetricTerrain {
 		const instancedObject = this.instancedObjects[buildConfiguration.instanceModel]
 		
 		instancedObject.addMatrices([dummy.matrix.clone()]);
+		// instancedObject.updateInstancedObjectMatrices();
 
 		instancedObject.update(app.player.position);
 
@@ -523,7 +522,7 @@ export default class TerrainController extends VolumetricTerrain {
 	adjustInstancedObjects( chunkKey, center, radius ) {
 
 		const chunk = this.getChunk( chunkKey );
-		console.log(chunk, chunkKey, center)
+		// console.log(chunk, chunkKey, center)
 		//todo unsure why chunk would be undefined
 		if (!chunk) return;
 
