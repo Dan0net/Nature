@@ -355,7 +355,7 @@ export default class TerrainController extends VolumetricTerrain {
 	}
 
 	updateInstancedObject( name ) {
-		console.log('update instance obj', name)
+		// console.log('update instance obj', name)
 		
 		return new Promise( resolve => {
 
@@ -376,7 +376,7 @@ export default class TerrainController extends VolumetricTerrain {
 						const key = this.getChunkKey( chunkCoord );
 
 						if ( object.hasData( key ) ) {
-							// console.log('updateInstances data', name, chunkCoord)
+							console.log('updateInstances data', name, chunkCoord)
 
 							object.addCachedData( key );
 
@@ -423,19 +423,24 @@ export default class TerrainController extends VolumetricTerrain {
 	addInstance( center, extents, buildConfiguration, isTemporary) {
 		if (isTemporary) return;
 
+		const {chunkCoord} = this.getChunkCoordAndCenter(center);
+		const chunkKey = this.getChunkKey(chunkCoord);
+		const chunk = this.getChunk(chunkKey);
+
 		const dummy = new THREE.Object3D();
 		dummy.position.copy( center );
 		dummy.updateMatrix();
-		console.log(dummy.matrix);
+		// console.log(dummy.matrix);
 
 		const instancedObject = this.instancedObjects[buildConfiguration.instanceModel]
 		
-		instancedObject.addMatrices([dummy.matrix.clone()]);
-		// instancedObject.updateInstancedObjectMatrices();
+		instancedObject.addDataToCache([dummy.matrix.clone()], chunkKey);
 
 		instancedObject.update(app.player.position);
 
-		// modelMatrices.push( dummy.matrix.clone() );
+		// console.log(chunkCoord, chunkKey, chunk)
+
+		chunk.addLight(center, 1.0);
 	}
 
 	//                              .o8                .               .oooooo.                          .
@@ -530,7 +535,7 @@ export default class TerrainController extends VolumetricTerrain {
 
 		for ( let key of Object.keys( this.instancedObjects ) ) {
 
-			this.instancedObjects[ key ].removeMatricesOnDistanceFromPoint( chunkKey, point, radius );
+			// this.instancedObjects[ key ].removeMatricesOnDistanceFromPoint( chunkKey, point, radius );
 
 		}
 

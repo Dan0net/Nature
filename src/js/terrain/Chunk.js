@@ -16,9 +16,9 @@ export default class Chunk extends VolumetricChunk {
 		this.adjustedIndicesTemp = new Int8Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
 
 		this.lightBuffer = [];
+		this.lightIncidents = new Float32Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
 		this.lightIndices = new Float32Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
-		this.lightIndicesTemp = new Float32Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
-
+		this.lightNeedsUpdating = false;
 	}
 
 	flipMesh() {
@@ -35,16 +35,20 @@ export default class Chunk extends VolumetricChunk {
 
 		return new Promise( resolve =>{
 
+			console.log(this.lightNeedsUpdating, this.chunkKey)
 			this.terrain.meshWorkerBank.work(
 				{
 					grid: this.useTemporaryGrid ? this.gridTemp : this.grid,
 					gridSize: this.terrain.gridSize,
 					terrainHeights: this.terrainHeights,
 					adjustedIndices: this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices,
-					lightIndices: this.useTemporaryGrid ? this.lightIndicesTemp : this.lightIndices
+					lightIncidents: this.lightIncidents,
+					lightIndices: this.lightIndices,
+					regenerateLights: this.lightNeedsUpdating
 				},
 				async ( { data } ) => {
-
+					
+					this.lightNeedsUpdating = false;
 					this.generateMesh( data );
 
 					resolve( this.chunkKey );
@@ -103,6 +107,38 @@ export default class Chunk extends VolumetricChunk {
 
 	}
 
+										
+	//                      88           88  
+	//                      88           88  
+	//                      88           88  
+	// ,adPPYYba,   ,adPPYb,88   ,adPPYb,88  
+	// ""     `Y8  a8"    `Y88  a8"    `Y88  
+	// ,adPPPPP88  8b       88  8b       88  
+	// 88,    ,88  "8a,   ,d88  "8a,   ,d88  
+	// `"8bbdP"Y8   `"8bbdP"Y8   `"8bbdP"Y8  								
+	// 88           88               88                   
+	// 88           ""               88            ,d     
+	// 88                            88            88     
+	// 88           88   ,adPPYb,d8  88,dPPYba,  MM88MMM  
+	// 88           88  a8"    `Y88  88P'    "8a   88     
+	// 88           88  8b       88  88       88   88     
+	// 88           88  "8a,   ,d88  88       88   88,    
+	// 88888888888  88   `"YbbdP"Y8  88       88   "Y888  
+	//                   aa,    ,88                       
+	//                    "Y8bbdP"                       
+	
+	addLight( center, value = 1.0 ) {
+		const localCenter = this.worldToChunkPosition( center ).round();
+
+		const index = this.gridIndex( localCenter.x, localCenter.y, localCenter.z );
+		
+		this.lightIncidents[ index ] = value;
+
+		this.needsUpdate = true;
+		this.lightNeedsUpdating = true;
+		console.log('light')
+	}
+
 	// async adjustGrid( ...args ) {
 
 	// 	super.adjustGrid( ...args );
@@ -120,20 +156,18 @@ export default class Chunk extends VolumetricChunk {
 
 	// }
 
-	saveGridPosition( gridPosition, materialInd, lightValue = 0 ) {
+	saveGridPosition( gridPosition, materialInd ) {
 		const a = this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices;
-		const b = this.useTemporaryGrid ? this.lightIndicesTemp : this.lightIndices;
 
 		const index = this.gridIndex( gridPosition.x, gridPosition.y, gridPosition.z );
 		a[ index ] = materialInd;
-		b[ index ] = lightValue;
 
 		if ( !this.useTemporaryGrid) {
 			if ( this.terrain.DB ) this.adjustedBuffer.push( { 
 				index, 
 				value: this.grid[ index ], 
 				adjust: this.adjustedIndices [index],
-				light: this.lightIndicesTemp [index] 
+				light: this.lightIndices [index] 
 			} );
 		}
 

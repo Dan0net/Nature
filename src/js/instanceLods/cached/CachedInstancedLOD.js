@@ -35,6 +35,8 @@ export default class CachedInstancedLOD extends InstancedLOD {
 
 	hasData( chunkKey ) {
 
+		// console.log(chunkKey, this.cachedData[ chunkKey ])
+
 		return this.cachedData[ chunkKey ] != undefined;
 
 	}
@@ -51,7 +53,19 @@ export default class CachedInstancedLOD extends InstancedLOD {
 
 	}
 
+	addDataToCache ( data, chunkKey ) {
+		this.addData ( data );
+		this.cachedData[ chunkKey ] = [];
+		for ( let matrix of data ) {
+
+			this.cachedData[ chunkKey ].push( matrix );
+
+		}
+		// console.log(this.cachedData[ chunkKey ])
+	}
+
 	removeCachedData( chunkKey ) {
+		console.log(chunkKey)
 
 		delete this.cachedData[ chunkKey ];
 

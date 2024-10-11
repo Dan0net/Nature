@@ -704,7 +704,7 @@ export default class Player extends THREE.Object3D {
 	adjustBuildShape ( delta ) {
 		this.buildPreset = delta === 0 ? 0 : (this.buildPreset + delta + BuildPresets.length) % BuildPresets.length;
 		this.buildConfiguration = Object.assign({}, BuildPresets[this.buildPreset]);
-		console.log(this.buildPreset, this.buildConfiguration)
+		// console.log(this.buildPreset, this.buildConfiguration)
 
 		// instance model
 		if (this.buildConfiguration.instanceModel) {
@@ -727,7 +727,7 @@ export default class Player extends THREE.Object3D {
 			this.buildWireframeMaterial.color.set(this.buildConfiguration.constructive ? 0x00FF00 : 0xFF0000);
 			this.buildWireframeMaterial.needsUpdate = true;
 		}
-		console.log(this.buildInstanceModel);
+		// console.log(this.buildInstanceModel);
 
 		this.buildConfiguration.needsUpdating = true;
 	}

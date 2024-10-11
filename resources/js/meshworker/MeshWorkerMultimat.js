@@ -14,7 +14,7 @@ self.onmessage = ( { data } ) => {
 
 };
 
-function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightIndices } ) {
+function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightIncidents, lightIndices, regenerateLights = true } ) {
 
 	surfaceNetEngine.createSurface( grid, [ gridSize.x, gridSize.y, gridSize.z ] ).then( generatedSurface => {
 		// const topvertmap = {};
@@ -24,40 +24,14 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 		const bary = new Float32Array( generatedSurface.faces.length * 2 * 3 * 3 ); //2 faces per generated face, 3 vertices, 3 uxw coords
 		const adjusted = new Int8Array( generatedSurface.faces.length * 2 * 3 * 3 ); //2 faces per generated face, 3 vertices, 3 material inds
 		const light = new Float32Array( generatedSurface.faces.length * 2 * 3 ); //2 faces per generated face, 3 vertices, 1 light value
-
+		
 		const stack = [];
 		const gridXY = gridSize.x * gridSize.y; // Precompute grid size for efficiency
 		const gridZ = gridSize.z;
+		const decayFactor = 0.04;
 
-		// Loop through the light indices
-		for (let i = 0; i < lightIndices.length; i++) {
-		if (grid[i] === 0.5) continue;
-
-		const intensity = lightIndices[i];
-		if (intensity === 1) {
-			const z = Math.floor(i / gridXY); // Precompute z index
-			const y = Math.floor((i - (z * gridXY)) / gridZ); // Precompute y index
-			const x = i - (z * gridXY) - (y * gridZ); // Precompute x index
-			stack.push([x, y, z, 2]); // Push to stack as array to reduce memory overhead
-		}
-		}
-
-		function lightFill3D(decayFactor) {
-		while (stack.length > 0) {
-			const [x, y, z, intensity] = stack.pop();
-
-			// Combined boundary checks for performance
-			if (x < 0 || x >= gridSize.x || y < 0 || y >= gridSize.y || z < 0 || z >= gridSize.z) continue;
-
-			const p = (z * gridXY) + (y * gridZ) + x;
-
-			if (lightIndices[p] >= intensity) continue;
-
-			lightIndices[p] = intensity;
-
-			if (grid[p] === 0.5) continue;
-
-			const newIntensity = intensity - decayFactor * (1.0 - (grid[p] + 0.5));
+		function lightStackPush(x, y, z, intensity) {
+			const newIntensity = intensity - decayFactor;
 
 			// Push neighboring voxels onto the stack
 			stack.push([x + 1, y, z, newIntensity]); // Right
@@ -67,9 +41,43 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 			stack.push([x, y, z + 1, newIntensity]); // Forward
 			stack.push([x, y, z - 1, newIntensity]); // Backward
 		}
+
+		// Loop through the light indices
+		for (let i = 0; i < lightIncidents.length; i++) {
+			if (grid[i] > 0) continue;
+
+			const intensity = lightIncidents[i];
+			if (intensity > 0) {
+				const z = Math.floor(i / gridXY); // Precompute z index
+				const y = Math.floor((i - (z * gridXY)) / gridZ); // Precompute y index
+				const x = i - (z * gridXY) - (y * gridZ); // Precompute x index
+				stack.push([x, y, z, intensity]); // Push to stack as array to reduce memory overhead
+			}
 		}
 
-		lightFill3D(0.1);
+		function lightFill3D() {
+			lightIndices.fill(0.0);
+
+			while (stack.length > 0) {
+				const [x, y, z, intensity] = stack.pop();
+				// console.log(x,y,z,intensity)
+
+				// Combined boundary checks for performance
+				if (x < 0 || x >= gridSize.x || y < 0 || y >= gridSize.y || z < 0 || z >= gridSize.z) continue;
+
+				const p = (z * gridXY) + (y * gridZ) + x;
+
+				if (lightIndices[p] >= intensity) continue;
+
+				lightIndices[p] = intensity;
+
+				if (grid[p] > 0) continue;
+
+				lightStackPush(x, y, z, intensity);
+			}
+		}
+
+		if ( regenerateLights ) lightFill3D();
 
 		const getMaterialLightValue = (v) => {
 			x = Math.round( v[ 0 ] );
@@ -79,7 +87,7 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 			
 			const p = ( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x;
 			const m = adjustedIndices[p];
-			const l = lightIndices[p];
+			const l = lightIndices[p] ** 4;
 			return [m, l];
 		};
 
@@ -141,7 +149,8 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 				// topvertices,
 				adjusted,
 				bary,
-				light
+				light,
+				lightIndices
 			},
 			[
 				indices.buffer,
@@ -151,7 +160,8 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 				// topvertices.buffer,
 				adjusted.buffer,
 				bary.buffer,
-				light.buffer
+				light.buffer,
+				lightIndices.buffer
 			]
 		);
 

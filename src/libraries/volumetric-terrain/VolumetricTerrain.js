@@ -475,19 +475,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		// TODO set any chunks not checked in loop to !useTemporaryGrid and flipMesh if they are
 	
 		// TODO simplify
-		const centerChunkCoord = new THREE.Vector3(
-			center.x / ( this.gridSize.x - CHUNK_OVERLAP ) / this.terrainScale.x,
-			center.y / ( this.gridSize.y - CHUNK_OVERLAP ) / this.terrainScale.y,
-			center.z / ( this.gridSize.z - CHUNK_OVERLAP ) / this.terrainScale.z
-		).floor();
-		
-		const centerChunkPosition = new THREE.Vector3(
-			centerChunkCoord.x * ( this.gridSize.x - CHUNK_OVERLAP ) * this.terrainScale.x,
-			centerChunkCoord.y * ( this.gridSize.y - CHUNK_OVERLAP ) * this.terrainScale.y,
-			centerChunkCoord.z * ( this.gridSize.z - CHUNK_OVERLAP ) * this.terrainScale.z
-		);
-
-		const localCenter = center.clone().sub(centerChunkPosition).divide(this.terrainScale)
+		const {chunkCoord, chunkCenter} = this.getChunkCoordAndCenter( center );
 
 		// console.log(centerChunkCoord)
 
@@ -499,39 +487,55 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		// for (var i = -2; i <=2; i++){
 		// 	for (var j = -2; j <=2; j++){
 		// 		for (var k = -2; k <=2; k++){
-			for ( let key of Object.keys( this.chunks ) ) {
+		for ( let key of Object.keys( this.chunks ) ) {
 
-					// let nChunk = this.getChunkKey( { 
-					// 	x: centerChunkCoord.x + i, 
-					// 	y: centerChunkCoord.y + k, 
-					// 	z: centerChunkCoord.z + j 
-					// } );
-					const chunk = this.chunks[ key ];
+			// let nChunk = this.getChunkKey( { 
+			// 	x: centerChunkCoord.x + i, 
+			// 	y: centerChunkCoord.y + k, 
+			// 	z: centerChunkCoord.z + j 
+			// } );
+			const chunk = this.chunks[ key ];
 
-					const coordDiff = new THREE.Vector3(chunk.offset.x, chunk.offset.y, chunk.offset.z).sub(centerChunkCoord);
+			const coordDiff = new THREE.Vector3(chunk.offset.x, chunk.offset.y, chunk.offset.z).sub(chunkCoord);
 
-					// if ( !chunk ) continue;
-					// console.log(nChunk)
+			// if ( !chunk ) continue;
+			// console.log(nChunk)
 
-					if (
-						Math.abs(coordDiff.x) <= 1 &&
-						Math.abs(coordDiff.y) <= 1 &&
-						Math.abs(coordDiff.z) <= 1 &&
-						( ( coordDiff.x > 0 ? this.gridSize.x : 0 ) + ( localCenter.x * -coordDiff.x ) - extents.x - extraMargin <= 0 ) &&
-						( ( coordDiff.y > 0 ? this.gridSize.y : 0 ) + ( localCenter.y * -coordDiff.y ) - extents.y - extraMargin <= 0 ) &&
-						( ( coordDiff.z > 0 ? this.gridSize.z : 0 ) + ( localCenter.z * -coordDiff.z ) - extents.z - extraMargin <= 0 )
-						) {
-						if ( true ) {
-							chunk.adjust( center, extents, buildConfiguration, isTemporary );
-						}
-					} else if ( chunk.useTemporaryGrid ) {
-						// console.log(chunk.chunkKey, 'flip off')
-						chunk.useTemporaryGrid = false;
-						chunk.flipMesh();
-					}
+			if (
+				Math.abs(coordDiff.x) <= 1 &&
+				Math.abs(coordDiff.y) <= 1 &&
+				Math.abs(coordDiff.z) <= 1 &&
+				( ( coordDiff.x > 0 ? this.gridSize.x : 0 ) + ( chunkCenter.x * -coordDiff.x ) - extents.x - extraMargin <= 0 ) &&
+				( ( coordDiff.y > 0 ? this.gridSize.y : 0 ) + ( chunkCenter.y * -coordDiff.y ) - extents.y - extraMargin <= 0 ) &&
+				( ( coordDiff.z > 0 ? this.gridSize.z : 0 ) + ( chunkCenter.z * -coordDiff.z ) - extents.z - extraMargin <= 0 )
+				) {
+				if ( true ) {
+					chunk.adjust( center, extents, buildConfiguration, isTemporary );
 				}
+			} else if ( chunk.useTemporaryGrid ) {
+				// console.log(chunk.chunkKey, 'flip off')
+				chunk.useTemporaryGrid = false;
+				chunk.flipMesh();
 			}
-	// 	}
-	// }																									
+		}
+	}
+	
+	getChunkCoordAndCenter( center ) {
+		const chunkCoord = new THREE.Vector3(
+			center.x / ( this.gridSize.x - CHUNK_OVERLAP ) / this.terrainScale.x,
+			center.y / ( this.gridSize.y - CHUNK_OVERLAP ) / this.terrainScale.y,
+			center.z / ( this.gridSize.z - CHUNK_OVERLAP ) / this.terrainScale.z
+		).floor();
+		
+		const centerChunkPosition = new THREE.Vector3(
+			chunkCoord.x * ( this.gridSize.x - CHUNK_OVERLAP ) * this.terrainScale.x,
+			chunkCoord.y * ( this.gridSize.y - CHUNK_OVERLAP ) * this.terrainScale.y,
+			chunkCoord.z * ( this.gridSize.z - CHUNK_OVERLAP ) * this.terrainScale.z
+		);
+
+		const chunkCenter = center.clone().sub(centerChunkPosition).divide(this.terrainScale);
+		
+		return {chunkCoord, chunkCenter}
+	}
 																						
 }

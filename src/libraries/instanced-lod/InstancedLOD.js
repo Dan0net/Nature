@@ -61,12 +61,8 @@ export default class InstancedLOD extends THREE.Object3D {
 				object.material,
 				amount
 			);
-			console.log('add instance obj')
 			instancedObject.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
-			// instancedObject.frustumCulled = false;
-			object.geometry.computeBoundingBox();
 			this.add( instancedObject );
-			
 			instancedObjects.push( instancedObject );
 
 		}
@@ -76,8 +72,6 @@ export default class InstancedLOD extends THREE.Object3D {
 	}
 
 	update( position ) {
-		console.log(this.matrices);
-
 		const levelCounts = new Array( this.levels.length ).fill( '' ).map( ()=>0 );
 
 		for ( let matrix of this.matrices ) {
@@ -167,10 +161,8 @@ export default class InstancedLOD extends THREE.Object3D {
 
 				instancedMesh.computeBoundingBox();
 				instancedMesh.computeBoundingSphere();
-				console.log(instancedMesh.boundingBox)
-				console.log(instancedMesh.boundingSphere)
-				const boxHelper = new THREE.Box3Helper(instancedMesh.boundingBox, 0xff0000);
-				app.scene.add(boxHelper);
+				// const boxHelper = new THREE.Box3Helper(instancedMesh.boundingBox, 0xff0000);
+				// app.scene.add(boxHelper);
 				instancedMesh.instanceMatrix.needsUpdate = true;
 
 			}

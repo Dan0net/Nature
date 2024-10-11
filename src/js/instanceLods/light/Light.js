@@ -40,9 +40,6 @@ export default class Light extends CachedInstancedLOD {
 
 	getModel() {
 		const geo = new THREE.OctahedronGeometry(1, 0);
-		geo.computeBoundingBox();
-		// models.lightModel.geometry.translate( 0, - 0.051, 0 );
-		// models.lightModel.geometry.scale( 1.45, 1.25, 1.45 );
 
 		const lightMaterial = new THREE.MeshLambertMaterial( {
 			color: 0x049ef4
@@ -54,8 +51,6 @@ export default class Light extends CachedInstancedLOD {
 			geo,
 			lightMaterial
 		);
-
-		console.log(geo.boundingBox);
 
 		return mesh;
 	}

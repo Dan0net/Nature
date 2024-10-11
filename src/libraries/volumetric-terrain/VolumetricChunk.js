@@ -202,7 +202,8 @@ export default class VolumetricChunk {
 			vertices,
 			adjusted,
 			bary,
-			light
+			light,
+			lightIndices
 		} = data;
 
 		if ( indices.length === 0 ) return;
@@ -268,6 +269,8 @@ export default class VolumetricChunk {
 		const lightBufferAttribute = new THREE.BufferAttribute( light, 1 )
 		buffer.setAttribute( 'light', lightBufferAttribute );
 		lightBufferAttribute.needsUpdate = true;
+
+		this.lightIndices = lightIndices;
 		
 		// meshObjs.indices.set(indices)
 
@@ -315,16 +318,16 @@ export default class VolumetricChunk {
 
 	adjust( center, buildExtents, buildConfiguration, useTemporaryGrid ) {		
 
-		const localCenter = center.clone()
-			.sub( this.position )
-			.divide( this.terrain.terrainScale )
+		const localCenter = this.worldToChunkPosition( center );
 		if (buildConfiguration.gridSnap) localCenter.round()
 
 		this.useTemporaryGrid = useTemporaryGrid;
 		if ( useTemporaryGrid ) {
 			this.gridTemp.set(this.grid)
 			this.adjustedIndicesTemp.set(this.adjustedIndices);
-			this.lightIndicesTemp.set(this.lightIndices);
+			// this.lightIndicesTemp.set(this.lightIndices);
+		} else {
+			this.lightNeedsUpdating = true;
 		}
 
 		this.adjustGrid( localCenter, buildExtents, buildConfiguration );
@@ -475,6 +478,12 @@ export default class VolumetricChunk {
 			coord.y >= 0 && coord.y < this.terrain.gridSize.y &&
 			coord.z >= 0 && coord.z < this.terrain.gridSize.z );
 
+	}
+
+	worldToChunkPosition( center ) {
+		return center.clone()
+			.sub( this.position )
+			.divide( this.terrain.terrainScale )
 	}
 
 	async dispose() {
