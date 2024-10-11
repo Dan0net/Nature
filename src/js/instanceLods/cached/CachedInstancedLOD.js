@@ -23,7 +23,7 @@ export default class CachedInstancedLOD extends InstancedLOD {
                  Math.abs( chunk.offset.y - currentCoord.y ) > this.viewDistance ||
                  Math.abs( chunk.offset.z - currentCoord.z ) > this.viewDistance ) {
 
-				delete this.cachedData[ key ];
+				// delete this.cachedData[ key ];
 
 			}
 
@@ -61,7 +61,7 @@ export default class CachedInstancedLOD extends InstancedLOD {
 			this.cachedData[ chunkKey ].push( matrix );
 
 		}
-		// console.log(this.cachedData[ chunkKey ])
+		console.log(chunkKey, this.cachedData[ chunkKey ])
 	}
 
 	removeCachedData( chunkKey ) {

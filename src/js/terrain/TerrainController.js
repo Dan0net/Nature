@@ -355,10 +355,11 @@ export default class TerrainController extends VolumetricTerrain {
 	}
 
 	updateInstancedObject( name ) {
-		// console.log('update instance obj', name)
+		console.log('update instance', name)
 		
 		return new Promise( resolve => {
 
+			// TODO figure out why cachedData is getting cleared for chunks
 			const object = this.instancedObjects[ name ];
 			object.clearData();
 
@@ -374,9 +375,9 @@ export default class TerrainController extends VolumetricTerrain {
 							z: ( playerCoord?.z || 0 ) + z,
 						};
 						const key = this.getChunkKey( chunkCoord );
-
+						// console.log(key, object.hasData( key ), object.cachedData[key])
 						if ( object.hasData( key ) ) {
-							console.log('updateInstances data', name, chunkCoord)
+							// console.log('chunk data', name, chunkCoord)
 
 							object.addCachedData( key );
 

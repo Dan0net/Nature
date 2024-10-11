@@ -51,12 +51,13 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 				const z = Math.floor(i / gridXY); // Precompute z index
 				const y = Math.floor((i - (z * gridXY)) / gridZ); // Precompute y index
 				const x = i - (z * gridXY) - (y * gridZ); // Precompute x index
-				stack.push([x, y, z, intensity]); // Push to stack as array to reduce memory overhead
+				// stack.push([x, y, z, intensity]); // Push to stack as array to reduce memory overhead
+				lightStackPush(x, y, z, intensity); // Push to stack as array to reduce memory overhead
 			}
 		}
 
 		function lightFill3D() {
-			lightIndices.fill(0.0);
+			lightIndices.fill(1.0);
 
 			while (stack.length > 0) {
 				const [x, y, z, intensity] = stack.pop();
@@ -71,6 +72,7 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 
 				lightIndices[p] = intensity;
 
+				// TODO fix light not propigating when on some <0.5 grid cells
 				if (grid[p] > 0) continue;
 
 				lightStackPush(x, y, z, intensity);

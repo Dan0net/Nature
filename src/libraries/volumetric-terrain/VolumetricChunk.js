@@ -332,7 +332,7 @@ export default class VolumetricChunk {
 
 		this.adjustGrid( localCenter, buildExtents, buildConfiguration );
 
-		if (!useTemporaryGrid) this.terrain.adjustInstancedObjects( this.chunkKey, center, 5 );
+		// if (!useTemporaryGrid) this.terrain.adjustInstancedObjects( this.chunkKey, center, 5 );
 	}
 
 	async adjustGrid( center, buildExtents, buildConfiguration ) {

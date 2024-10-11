@@ -35,7 +35,6 @@ export default class Chunk extends VolumetricChunk {
 
 		return new Promise( resolve =>{
 
-			console.log(this.lightNeedsUpdating, this.chunkKey)
 			this.terrain.meshWorkerBank.work(
 				{
 					grid: this.useTemporaryGrid ? this.gridTemp : this.grid,
@@ -47,7 +46,7 @@ export default class Chunk extends VolumetricChunk {
 					regenerateLights: this.lightNeedsUpdating
 				},
 				async ( { data } ) => {
-					
+
 					this.lightNeedsUpdating = false;
 					this.generateMesh( data );
 
@@ -136,7 +135,6 @@ export default class Chunk extends VolumetricChunk {
 
 		this.needsUpdate = true;
 		this.lightNeedsUpdating = true;
-		console.log('light')
 	}
 
 	// async adjustGrid( ...args ) {
