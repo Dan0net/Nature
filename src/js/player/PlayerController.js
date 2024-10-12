@@ -160,7 +160,7 @@ export default class Player extends THREE.Object3D {
 			//lights
 			const skyColor = 0xB1E1FF;  // light blue
 			const groundColor = 0xB97A20;  // brownish orange
-			const Hintensity = 0.5;
+			const Hintensity = 0.25;
 			const Hlight = new THREE.HemisphereLight(skyColor, groundColor, Hintensity);
 			app.scene.add(Hlight);
 
@@ -171,6 +171,8 @@ export default class Player extends THREE.Object3D {
 			this.shadowLight.position.copy(this.shadowLightOffset);
 			this.shadowLight.target.position.set(0, 20, 0);
 			this.shadowLight.castShadow = true;
+			this.shadowLight.shadow.mapSize.width = 2048;
+			this.shadowLight.shadow.mapSize.height = 2048;
 			this.shadowLight.shadow.camera.zoom = 1;
 			this.shadowLight.shadow.camera.blur = 4;
 			this.shadowLight.shadow.camera.radius = 10;
@@ -182,8 +184,8 @@ export default class Player extends THREE.Object3D {
 			app.scene.add(this.shadowLight);
 			// app.scene.add(this.shadowLight.target);
 
-			// const cameraHelper = new THREE.CameraHelper(this.shadowLight.shadow.camera);
-			// app.scene.add(cameraHelper);
+			const cameraHelper = new THREE.CameraHelper(this.shadowLight.shadow.camera);
+			app.scene.add(cameraHelper);
 		
 			const loader = new THREE.CubeTextureLoader();
 			loader.setPath( 'resources/images/skybox/' );

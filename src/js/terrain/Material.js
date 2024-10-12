@@ -238,6 +238,7 @@ const terrainMaterial= (envmap) => {
         normalMap: normalMap,
         // displacementMap: displacementMap,
         // roughnessMap: roughnessMap,
+        normalScale: new THREE.Vector2(2,2),
         roughness: 1,
         aoMap: aoMap,
         envmap: envmap,
@@ -266,14 +267,15 @@ const terrainMaterial= (envmap) => {
         normalMap: normalMap,
         normalMapType: THREE.ObjectSpaceNormalMap,
         aoMap: aoMap,
-        // // displacementMap: displacementMap,
-        // roughnessMap: roughnessMap,
+        // displacementMap: displacementMap,
+        roughnessMap: roughnessMap,
         envmap: envmap,
         // // glslVersion: THREE.GLSL3
-        // // normalScale: new THREE.Vector2(2, 2)
+        // normalScale: new THREE.Vector2(0, 0)
         // specular: new THREE.Color(.5,.5,.5),
         // reflectivity: 1.0,
-        // combine: THREE.MixOperation
+        // combine: THREE.MixOperation,
+        flatShading: true
     } );
     console.log(mat.normalMapType, THREE.TangentSpaceNormalMap)
     mat.onBeforeCompile = ( shader ) => {
@@ -309,6 +311,19 @@ const terrainMaterial= (envmap) => {
                 vLight = light;
                 `
             );
+
+        shader.vertexShader = shader.vertexShader.replace(
+            '#include <displacementmap_vertex>',
+            `
+            float lol = 2.0;
+
+            #ifdef USE_DISPLACEMENTMAP
+
+	            transformed += normalize( objectNormal ) * ( texture2D( displacementMap, vDisplacementMapUv ).x * displacementScale + displacementBias );
+
+            #endif
+            `
+        );
         
         // precision highp sampler2DArray;
 
@@ -330,9 +345,9 @@ const terrainMaterial= (envmap) => {
                     blending = abs(blending);
 
                     blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-                    float b = (blending.x + blending.y + blending.z);
+                    float b = blending.x + blending.y + blending.z;
                     blending /= vec3(b, b, b);
-                    return blending * blending;
+                    return pow(blending, vec3(4.0, 4.0, 4.0));
                 }
 
                 vec4 getTriPlanarTexture(){
@@ -373,6 +388,14 @@ const terrainMaterial= (envmap) => {
                     float repeatScale = 0.25;
 
                     vec3 blending = getTriPlanarBlend( vNormal2 );
+
+                    if (blending.x >= blending.y && blending.x >= blending.z) {
+                        return texture( tex, vec2(pos.zy * repeatScale ) ).rgb;
+                    } else if (blending.y >= blending.x && blending.y >= blending.z) {
+                        return texture( tex, vec2(pos.xz * repeatScale ) ).rgb;
+                    } else {
+                        return texture( tex, vec2(pos.xy * repeatScale ) ).rgb;
+                    }
                     
                     vec3 xaxis = 
                         texture( tex, vec2(pos.yz * repeatScale ) ).rgb;
@@ -405,9 +428,23 @@ const terrainMaterial= (envmap) => {
         shader.fragmentShader = shader.fragmentShader.replace(
             '#include <normal_fragment_maps>',
             `
-            normal = normalize(getTriTextureBasic( normalMap ).xyz) * 2.0 - 1.0;
-            // normal = vec3(0,0,0) * 2.0 - 1.0;
-            normal = normalize( normalMatrix * normal );
+            #ifdef USE_NORMALMAP_OBJECTSPACE
+                normal = normalize(getTriTextureBasic( normalMap ).xyz) * 2.0 - 1.0;
+               
+                #ifdef FLIP_SIDED
+
+                    normal = - normal;
+
+                #endif
+
+                #ifdef DOUBLE_SIDED
+
+                    normal = normal * faceDirection;
+
+                #endif
+                
+                normal = normalize( normalMatrix * normal );
+            #endif
             `
         );
 
@@ -416,28 +453,44 @@ const terrainMaterial= (envmap) => {
             `
             #ifdef USE_AOMAP
 
-            // reads channel R, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
-            float ambientOcclusion = ( getTriTextureBasic( aoMap ).r - 1.0 ) * aoMapIntensity + 1.0;
+                // reads channel R, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
+                float ambientOcclusion = ( getTriTextureBasic( aoMap ).r - 1.0 ) * aoMapIntensity + 1.0;
 
-            reflectedLight.indirectDiffuse *= ambientOcclusion;
+                reflectedLight.indirectDiffuse *= ambientOcclusion;
 
-            #if defined( USE_CLEARCOAT ) 
-                clearcoatSpecularIndirect *= ambientOcclusion;
+                #if defined( USE_CLEARCOAT ) 
+                    clearcoatSpecularIndirect *= ambientOcclusion;
+                #endif
+
+                #if defined( USE_SHEEN ) 
+                    sheenSpecularIndirect *= ambientOcclusion;
+                #endif
+
+                #if defined( USE_ENVMAP ) && defined( STANDARD )
+
+                    float dotNV = saturate( dot( geometryNormal, geometryViewDir ) );
+
+                    reflectedLight.indirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, material.roughness );
+
+                #endif
+
             #endif
+            `
+        );
 
-            #if defined( USE_SHEEN ) 
-                sheenSpecularIndirect *= ambientOcclusion;
+        shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <roughnessmap_fragment>',
+            `
+            float roughnessFactor = roughness;
+
+            #ifdef USE_ROUGHNESSMAP
+
+                vec3 texelRoughness = getTriTextureBasic( roughnessMap );
+
+                // reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
+                roughnessFactor *= texelRoughness.g;
+
             #endif
-
-            #if defined( USE_ENVMAP ) && defined( STANDARD )
-
-                float dotNV = saturate( dot( geometryNormal, geometryViewDir ) );
-
-                reflectedLight.indirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, material.roughness );
-
-            #endif
-
-        #endif
             `
         );
 
