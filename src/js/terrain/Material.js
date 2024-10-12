@@ -226,17 +226,20 @@ normalMap.anisotropy = 8;
 displacementMap.anisotropy = 8;
 aoMap.anisotropy = 8;
 roughnessMap.anisotropy = 8;
-
-
+roughnessMap.wrapT = THREE.RepeatWrapping;
+roughnessMap.wrapS = THREE.RepeatWrapping;
+aoMap.wrapT = THREE.RepeatWrapping;
+aoMap.wrapS = THREE.RepeatWrapping;
 
 const terrainMaterial= (envmap) => {
 
     const mat2 = new THREE.MeshStandardMaterial( {
-        // map: map,
+        map: map,
         normalMap: normalMap,
         // displacementMap: displacementMap,
         // roughnessMap: roughnessMap,
-        // aoMap: aoMap,
+        roughness: 1,
+        aoMap: aoMap,
         envmap: envmap,
     } );
 
@@ -262,7 +265,7 @@ const terrainMaterial= (envmap) => {
         map: map, // enables UV's in shader
         normalMap: normalMap,
         normalMapType: THREE.ObjectSpaceNormalMap,
-        // aoMap: aoMap,
+        aoMap: aoMap,
         // // displacementMap: displacementMap,
         // roughnessMap: roughnessMap,
         envmap: envmap,
@@ -393,7 +396,6 @@ const terrainMaterial= (envmap) => {
             'vec4 diffuseColor = vec4( diffuse, opacity );',
             `
             vec4 diffuseColor =  vec4( getTriTextureBasic(map).rgb * vLight, opacity );
-            // vec4 diffuseColor =  vec4(texture2D( normalMap, vPos.xz*.25 ).xyz, 1.0);
             // vec4 diffuseColor =  vec4(.5,.5,.5, 1.0);
             `
         );
@@ -404,7 +406,38 @@ const terrainMaterial= (envmap) => {
             '#include <normal_fragment_maps>',
             `
             normal = normalize(getTriTextureBasic( normalMap ).xyz) * 2.0 - 1.0;
+            // normal = vec3(0,0,0) * 2.0 - 1.0;
             normal = normalize( normalMatrix * normal );
+            `
+        );
+
+        shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <aomap_fragment>',
+            `
+            #ifdef USE_AOMAP
+
+            // reads channel R, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
+            float ambientOcclusion = ( getTriTextureBasic( aoMap ).r - 1.0 ) * aoMapIntensity + 1.0;
+
+            reflectedLight.indirectDiffuse *= ambientOcclusion;
+
+            #if defined( USE_CLEARCOAT ) 
+                clearcoatSpecularIndirect *= ambientOcclusion;
+            #endif
+
+            #if defined( USE_SHEEN ) 
+                sheenSpecularIndirect *= ambientOcclusion;
+            #endif
+
+            #if defined( USE_ENVMAP ) && defined( STANDARD )
+
+                float dotNV = saturate( dot( geometryNormal, geometryViewDir ) );
+
+                reflectedLight.indirectSpecular *= computeSpecularOcclusion( dotNV, ambientOcclusion, material.roughness );
+
+            #endif
+
+        #endif
             `
         );
 
