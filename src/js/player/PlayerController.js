@@ -165,7 +165,7 @@ export default class Player extends THREE.Object3D {
 			app.scene.add(Hlight);
 
 			const Dcolor = 0xFFFFFF;
-			const Dintensity = 2;
+			const Dintensity = 1;
 			this.shadowLightOffset = new THREE.Vector3(-75, 100, 75);
 			this.shadowLight = new THREE.DirectionalLight(Dcolor, Dintensity);
 			this.shadowLight.position.copy(this.shadowLightOffset);
@@ -180,10 +180,10 @@ export default class Player extends THREE.Object3D {
 			this.shadowLight.shadow.camera.bottom = -60;
 			this.shadowLight.shadow.normalBias = 0.25;
 			app.scene.add(this.shadowLight);
-			app.scene.add(this.shadowLight.target);
+			// app.scene.add(this.shadowLight.target);
 
-			const cameraHelper = new THREE.CameraHelper(this.shadowLight.shadow.camera);
-			app.scene.add(cameraHelper);
+			// const cameraHelper = new THREE.CameraHelper(this.shadowLight.shadow.camera);
+			// app.scene.add(cameraHelper);
 		
 			const loader = new THREE.CubeTextureLoader();
 			loader.setPath( 'resources/images/skybox/' );
@@ -240,7 +240,7 @@ export default class Player extends THREE.Object3D {
 		//timer for adjusting terrain
 		this.adjustTerrain( delta, mouseIsPressed );
 
-		this.moveSkyboxAndLight();
+		// this.moveSkyboxAndLight();
 
 		this.updateFood( delta );
 
