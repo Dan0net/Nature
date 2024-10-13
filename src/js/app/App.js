@@ -119,7 +119,7 @@ export default class App {
 		this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 128, { generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
 		this.cubeCamera = new THREE.CubeCamera(1, 1000, this.cubeRenderTarget ); // Near, far, and resolution
 		this.cubeCamera.update(this.renderer, this.scene);
-		// this.scene.environment = this.cubeRenderTarget.texture;
+		this.scene.environment = this.cubeRenderTarget.texture;
 		// console.log(this.cubeRenderTarget.texture);
 
 		return new Promise( async ( resolve ) => {

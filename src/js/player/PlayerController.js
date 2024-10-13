@@ -165,7 +165,7 @@ export default class Player extends THREE.Object3D {
 			app.scene.add(Hlight);
 
 			const Dcolor = 0xFFFFFF;
-			const Dintensity = 0.5;
+			const Dintensity = 1.0;
 			this.shadowLightOffset = new THREE.Vector3(-75, 100, 75);
 			this.shadowLight = new THREE.DirectionalLight(Dcolor, Dintensity);
 			this.shadowLight.position.copy(this.shadowLightOffset);

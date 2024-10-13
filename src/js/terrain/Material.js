@@ -322,10 +322,11 @@ const terrainMaterial= (envmap) => {
         // displacementScale: 2.0,
         roughnessMap: roughnessMap,
         // metalnessMap: metalnessMap,
-        // metalness: 0.5,
-        // envmap: envmap,
+        metalness: 0.5,
+        // envMap: envmap,
         // normalScale: new THREE.Vector2(2, 2)
-        // envMapIntensity: 1.0
+        // envMapIntensity: 0.5,
+        toneMapped: false
     } );
 
     mat.onBeforeCompile = ( shader ) => {
