@@ -209,59 +209,72 @@ function loadGZTexture() {
 // loadGZTexture()
 loadImagesSequentially(imagePaths);
 
-let map = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Color.png' );
-let aoMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_AmbientOcclusion.png' );
-let normalMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_NormalGL.png' );
-let roughnessMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Roughness.png' );
-let displacementMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Displacement.png' );
+// let map = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Color.png' );
+// let aoMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_AmbientOcclusion.png' );
+// let normalMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_NormalGL.png' );
+// let roughnessMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Roughness.png' );
+// let displacementMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Displacement.png' );
+
+let map = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Color.png' );
+// let aoMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_AmbientOcclusion.png' );
+let normalMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_NormalGL.png' );
+let roughnessMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Roughness.png' );
+let metalnessMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Metalness.png' );
+// let displacementMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Displacement.png' );
+
 map.wrapT = THREE.RepeatWrapping;
 map.wrapS = THREE.RepeatWrapping;
 normalMap.wrapT = THREE.RepeatWrapping;
 normalMap.wrapS = THREE.RepeatWrapping;
-displacementMap.wrapT = THREE.RepeatWrapping;
-displacementMap.wrapS = THREE.RepeatWrapping;
+// displacementMap.wrapT = THREE.RepeatWrapping;
+// displacementMap.wrapS = THREE.RepeatWrapping;
 normalMap.flipY = true;
 map.anisotropy = 8;
 normalMap.anisotropy = 8;
-displacementMap.anisotropy = 8;
-aoMap.anisotropy = 8;
+// displacementMap.anisotropy = 8;
+// aoMap.anisotropy = 8;
 roughnessMap.anisotropy = 8;
 roughnessMap.wrapT = THREE.RepeatWrapping;
 roughnessMap.wrapS = THREE.RepeatWrapping;
-aoMap.wrapT = THREE.RepeatWrapping;
-aoMap.wrapS = THREE.RepeatWrapping;
-
+// aoMap.wrapT = THREE.RepeatWrapping;
+// aoMap.wrapS = THREE.RepeatWrapping;
+metalnessMap.anisotropy = 8;
+metalnessMap.wrapT = THREE.RepeatWrapping;
+metalnessMap.wrapS = THREE.RepeatWrapping;
 const terrainMaterial= (envmap) => {
 
-    const mat2 = new THREE.MeshStandardMaterial( {
-        map: map,
-        normalMap: normalMap,
-        // displacementMap: displacementMap,
-        // roughnessMap: roughnessMap,
-        normalScale: new THREE.Vector2(2,2),
-        roughness: 1,
-        aoMap: aoMap,
-        envmap: envmap,
-    } );
+    // const mat2 = new THREE.MeshStandardMaterial( {
+    //     map: map,
+    //     normalMap: normalMap,
+    //     // displacementMap: displacementMap,
+    //     // roughnessMap: roughnessMap,
+    //     normalScale: new THREE.Vector2(2,2),
+    //     // roughness: 1,
+    //     // aoMap: aoMap,
+    //     // envmap: envmap,
+    // } );
 
-    const cube = new THREE.BoxGeometry(4,4,4);
-    const mesh = new THREE.Mesh(cube, mat2);
-    mesh.receiveShadow = true;
-    mesh.position.set(8,4,0)
-    console.log(mesh.position)
-    app.scene.add(mesh);
-
+    // const cube = new THREE.BoxGeometry(4,4,4);
+    // const mesh = new THREE.Mesh(cube, mat2);
+    // mesh.receiveShadow = true;
+    // mesh.position.set(8,4,0)
+    // console.log(mesh.position)
+    // app.scene.add(mesh);
+    console.log(envmap)
     const mat = new THREE.MeshStandardMaterial( {
         map: map,
         normalMap: normalMap,
         normalMapType: THREE.ObjectSpaceNormalMap,
-        aoMap: aoMap,
+        // aoMap: aoMap,
         // displacementMap: displacementMap,
+        // displacementScale: 2.0,
         roughnessMap: roughnessMap,
+        // metalnessMap: metalnessMap,
+        metalness: 1.0,
         envmap: envmap,
-        normalScale: new THREE.Vector2(1, 1)
+        // normalScale: new THREE.Vector2(1, 1)
     } );
-    console.log(mat.normalMapType, THREE.TangentSpaceNormalMap)
+
     mat.onBeforeCompile = ( shader ) => {
 
         shader.uniforms.tDiff = {
@@ -284,6 +297,42 @@ const terrainMaterial= (envmap) => {
             varying vec3 ambientLightColor;
             varying vec3 vPos;
             varying vec3 vNormal2;
+
+            uniform float repeatScale;
+
+            vec3 getTriPlanarBlend(vec3 _wNorm){
+                vec3 blending = vec3( _wNorm );                
+                blending = abs(blending);
+
+                blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
+                float b = blending.x + blending.y + blending.z;
+                blending /= vec3(b, b, b);
+                return blending;
+                // return pow(blending, vec3(4.0, 4.0, 4.0));
+            }
+
+            vec3 getPos() {
+                float pixelSize = 1.0 / 32.0;
+                // return floor(vPos / pixelSize) * pixelSize;
+                return vPos;
+            }
+
+            vec3 getTriTextureBlend(sampler2D tex, vec3 _normal, vec3 pos){                                  
+                vec3 blending = getTriPlanarBlend( _normal );
+
+                vec3 xaxis = 
+                    texture( tex, vec2(pos.zy * repeatScale ) ).rgb;
+
+                vec3 zaxis = 
+                    texture( tex, vec2(pos.xy * repeatScale ) ).rgb;
+
+                vec3 yaxis = 
+                    texture( tex, vec2(pos.xz * repeatScale ) ).rgb;
+                
+
+                return vec3( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z );
+            
+            }
         ` + shader.vertexShader
             .replace(
                 '#include <worldpos_vertex>',
@@ -300,11 +349,9 @@ const terrainMaterial= (envmap) => {
         shader.vertexShader = shader.vertexShader.replace(
             '#include <displacementmap_vertex>',
             `
-            float lol = 2.0;
-
             #ifdef USE_DISPLACEMENTMAP
 
-	            transformed += normalize( objectNormal ) * ( texture2D( displacementMap, vDisplacementMapUv ).x * displacementScale + displacementBias );
+	            transformed += normalize( objectNormal ) * ( getTriTextureBlend( displacementMap, objectNormal, vec3(position) ).x * displacementScale + displacementBias );
 
             #endif
             `

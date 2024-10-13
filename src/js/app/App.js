@@ -100,6 +100,18 @@ export default class App {
 
 	startLoading( offset, viewDistance, saveProgress ) {
 
+		const loader = new THREE.CubeTextureLoader();
+		loader.setPath( 'resources/images/skybox/' );
+		const textureCube = loader.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
+		this.scene.background = textureCube;
+
+		// Create a CubeCamera
+		this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 128, { generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
+		this.cubeCamera = new THREE.CubeCamera(1, 1000, this.cubeRenderTarget ); // Near, far, and resolution
+		this.cubeCamera.update(this.renderer, this.scene);
+		this.scene.environment = this.cubeRenderTarget.texture;
+		console.log(this.cubeRenderTarget.texture);
+
 		return new Promise( async ( resolve ) => {
 
 			if ( ! this.loaded ) await ModelLoader.preloadModels();
@@ -114,6 +126,7 @@ export default class App {
 						viewDistance,
 						saveProgress,
 						this.terrainSeed,
+						this.cubeRenderTarget.texture,
 						() => resolve()
 					);
 					this.scene.add( this.terrainController );

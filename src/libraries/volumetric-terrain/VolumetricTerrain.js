@@ -255,6 +255,9 @@ export default class VolumetricTerrain extends THREE.Object3D {
 
 		}
 
+		app.cubeCamera.position.copy(app.player.position)
+		app.cubeCamera.update(app.renderer, app.scene);
+
 		this.updating = false;
 
 	}

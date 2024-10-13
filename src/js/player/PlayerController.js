@@ -188,11 +188,6 @@ export default class Player extends THREE.Object3D {
 
 			const cameraHelper = new THREE.CameraHelper(this.shadowLight.shadow.camera);
 			app.scene.add(cameraHelper);
-		
-			const loader = new THREE.CubeTextureLoader();
-			loader.setPath( 'resources/images/skybox/' );
-			const textureCube = loader.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
-			app.scene.background = textureCube;
 
 			// build
 

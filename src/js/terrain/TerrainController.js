@@ -17,7 +17,7 @@ import Light from '../instanceLods/light/Light';
 // eslint-disable-next-line no-unused-vars
 export default class TerrainController extends VolumetricTerrain {
 
-	constructor( app, offset, viewDistance, saveProgress, seed, callback ) {
+	constructor( app, offset, viewDistance, saveProgress, seed, envmap, callback ) {
 
 		super( {
 			gridSize: { x: 32, y: 32, z: 32 },
@@ -25,7 +25,7 @@ export default class TerrainController extends VolumetricTerrain {
 			currentCoord: offset,
 			viewDistance: viewDistance.viewHigh + viewDistance.viewLow,
 			fps: 24,
-			material: terrainMaterial( app.scene.background ),
+			material: terrainMaterial( envmap ),
 			// material: terrainMaterialBasic,
 			// material: terrainMaterial3D,
 			workers: 1,
