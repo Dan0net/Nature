@@ -100,17 +100,27 @@ export default class App {
 
 	startLoading( offset, viewDistance, saveProgress ) {
 
-		const loader = new THREE.CubeTextureLoader();
-		loader.setPath( 'resources/images/skybox/' );
-		const textureCube = loader.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
-		this.scene.background = textureCube;
+		// const loader = new THREE.CubeTextureLoader();
+		// loader.setPath( 'resources/images/skybox/' );
+		// const textureCube = loader.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
+		// this.scene.background = textureCube;
+		const loader = new THREE.TextureLoader();
+		const skyBoxTexture = loader.load(
+			// 'resources/images/NightSkyHDRI008_2K-TONEMAPPED.jpg',
+			'resources/images/EveningSkyHDRI017B_2K-TONEMAPPED.jpg',
+			() => {
+			skyBoxTexture.mapping = THREE.EquirectangularReflectionMapping;
+			skyBoxTexture.colorSpace = THREE.SRGBColorSpace;
+			this.scene.background = skyBoxTexture;
+			// this.scene.environment = skyBoxTexture;
+		});
 
 		// Create a CubeCamera
 		this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 128, { generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
 		this.cubeCamera = new THREE.CubeCamera(1, 1000, this.cubeRenderTarget ); // Near, far, and resolution
 		this.cubeCamera.update(this.renderer, this.scene);
-		this.scene.environment = this.cubeRenderTarget.texture;
-		console.log(this.cubeRenderTarget.texture);
+		// this.scene.environment = this.cubeRenderTarget.texture;
+		// console.log(this.cubeRenderTarget.texture);
 
 		return new Promise( async ( resolve ) => {
 

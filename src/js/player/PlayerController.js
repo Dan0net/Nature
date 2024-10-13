@@ -83,7 +83,7 @@ export default class Player extends THREE.Object3D {
 		// this.buildConfiguration = Object.assign({}, BuildPresets[0])
 		// this.buildConfiguration.needsUpdating = true;
 		this.buildMaterial = 0;
-		this.maxBuildMaterials = 4;
+		this.maxBuildMaterials = 6;
 		this.buildCenterPrevious;
 		this.buildInstanceModel;
 	}
@@ -165,7 +165,7 @@ export default class Player extends THREE.Object3D {
 			app.scene.add(Hlight);
 
 			const Dcolor = 0xFFFFFF;
-			const Dintensity = 1;
+			const Dintensity = 0.5;
 			this.shadowLightOffset = new THREE.Vector3(-75, 100, 75);
 			this.shadowLight = new THREE.DirectionalLight(Dcolor, Dintensity);
 			this.shadowLight.position.copy(this.shadowLightOffset);

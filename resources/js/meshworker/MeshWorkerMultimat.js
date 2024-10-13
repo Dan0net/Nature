@@ -59,7 +59,7 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 		}
 
 		function lightFill3D() {
-			lightIndices.fill(0.2);
+			lightIndices.fill(0.0);
 
 			while (stack.length > 0) {
 				const [x, y, z, intensity] = stack.pop();

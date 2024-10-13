@@ -62,17 +62,6 @@ import { gzipSync, decompressSync, gunzip, gunzipSync } from 'fflate';
 // texture.needsUpdate = true;
 
 // Define the number of images and size of the texture
-const imagePaths = [
-    './resources/images/terrain/rock.png',
-    './resources/images/terrain/grass.png',
-    './resources/images/terrain/dirt.png',
-    './resources/images/terrain/wood.png',
-];
-const layers = imagePaths.length; // Number of layers
-let width, height;  // Texture dimensions, to be determined after loading the first image
-
-// Create a base texture array (we will fill in data after loading images)
-let textureArray, combinedData;
 
   function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
@@ -107,60 +96,75 @@ function createGzipFile() {
 
 document.getElementById('downloadButton').addEventListener('click', createGzipFile);
 
-// Function to load images sequentially and fill texture array data
-function loadImagesSequentially(imagePaths, index = 0) {
-    console.log(index, imagePaths.length)
-    if (index >= imagePaths.length) {
-        console.log('All images loaded!');
-        // Now create and use the texture array in a material after all images are loaded
-        textureArray.needsUpdate = true;
 
-        return;
+
+
+// Create a base texture array (we will fill in data after loading images)
+function loadTextureArray(imagePaths) {
+    let textureArray;
+    let combinedData;
+    const layers = imagePaths.length; // Number of layers
+    let width, height; // Texture dimensions, to be determined after loading the first image
+
+    // Function to load images sequentially and fill texture array data
+    function loadImagesSequentially(index = 0) {
+        return new Promise((resolve, reject) => {
+            if (index >= imagePaths.length) {
+                console.log('All images loaded!');
+                textureArray.needsUpdate = true;
+                resolve(textureArray);
+                return;
+            }
+
+            // Load each image
+            const image = new Image();
+            image.src = imagePaths[index];
+            image.onload = function () {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = image.width;
+                canvas.height = image.height;
+
+                if (index === 0) {
+                    // Set width and height based on the first image
+                    width = image.width;
+                    height = image.height;
+
+                    // Initialize combined data for all layers
+                    combinedData = new Uint8Array(width * height * 4 * layers); // 4 channels (RGBA)
+
+                    // Create DataArrayTexture after the first image loads
+                    textureArray = new THREE.DataArrayTexture(combinedData, width, height, layers);
+                    textureArray.format = THREE.RGBAFormat;
+                    textureArray.type = THREE.UnsignedByteType;
+                    textureArray.wrapT = THREE.RepeatWrapping;
+                    textureArray.wrapS = THREE.RepeatWrapping;
+                    textureArray.minFilter = THREE.LinearMipMapLinearFilter;
+                    textureArray.maxFilter = THREE.LinearMipMapLinearFilter;
+                    textureArray.anisotropy = 8;
+                }
+
+                // Draw the image on the canvas to get pixel data
+                ctx.drawImage(image, 0, 0);
+                const imageData = ctx.getImageData(0, 0, width, height);
+
+                // Copy the image data into the combinedData array for this layer
+                combinedData.set(imageData.data, index * width * height * 4);
+
+                // Load the next image in sequence
+                loadImagesSequentially(index + 1).then(resolve).catch(reject);
+            };
+
+            image.onerror = function () {
+                reject(`Error loading image: ${image.src}`);
+            };
+        });
     }
 
-    // Load each image
-    const image = new Image();
-    image.src = imagePaths[index];
-    image.onload = function () {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = image.width;
-        canvas.height = image.height;
-        
-        if (index === 0) {
-            // Set width and height based on the first image
-            width = image.width;
-            height = image.height;
-
-            // Initialize combined data for all layers
-            combinedData = new Uint8Array(width * height * 4 * layers); // 4 channels (RGBA)
-
-            // Create DataArrayTexture at the base
-            textureArray = new THREE.DataArrayTexture(combinedData, width, height, layers);
-            textureArray.format = THREE.RGBAFormat;
-            textureArray.type = THREE.UnsignedByteType;
-            textureArray.wrapT = THREE.RepeatWrapping;
-            textureArray.wrapS = THREE.RepeatWrapping;
-            textureArray.minFilter = THREE.NearestMipMapLinearFilter;
-            textureArray.maxFilter = THREE.NearestMipMapLinearFilter;
-            textureArray.anisotropy = 8;
-        }
-
-        // Draw the image on the canvas to get pixel data
-        ctx.drawImage(image, 0, 0);
-        const imageData = ctx.getImageData(0, 0, width, height);
-
-        // Copy the image data into the combinedData array for this layer
-        combinedData.set(imageData.data, index * width * height * 4);
-
-        // Load the next image in sequence
-        loadImagesSequentially(imagePaths, index + 1);
-    };
-
-    image.onerror = function () {
-        console.error(`Error loading image: ${imagePaths[index]}`);
-        loadImagesSequentially(imagePaths, index + 1); // Continue to next image if error
-    };
+    // Return a promise that resolves when all images are loaded
+    return new Promise((resolve, reject) => {
+        loadImagesSequentially().then(resolve).catch(reject);
+    });
 }
 
 // Start loading images sequentially
@@ -206,41 +210,89 @@ function loadGZTexture() {
     );
 }
 
-// loadGZTexture()
-loadImagesSequentially(imagePaths);
+let mapArray, normalArray, aoArray, roughnessArray;
 
-// let map = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Color.png' );
-// let aoMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_AmbientOcclusion.png' );
-// let normalMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_NormalGL.png' );
-// let roughnessMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Roughness.png' );
+const mapArrayPromise = loadTextureArray([
+    './resources/images/terrain/Rock028_1K-PNG_Color.png',
+    './resources/images/terrain/Grass001_1K-PNG_Color.png',
+    './resources/images/terrain/Ground051_1K-PNG_Color.png',
+    './resources/images/terrain/Bark014_1K-PNG_Color.png',
+    './resources/images/terrain/Bricks094_1K-PNG_Color.png',
+    './resources/images/terrain/Ground080_1K-PNG_Color.png',
+]);
+
+const normalMapArrayPromise = loadTextureArray([
+    './resources/images/terrain/Rock028_1K-PNG_NormalGL.png',
+    './resources/images/terrain/Grass001_1K-PNG_NormalGL.png',
+    './resources/images/terrain/Ground051_1K-PNG_NormalGL.png',
+    './resources/images/terrain/Bark014_1K-PNG_NormalGL.png',
+    './resources/images/terrain/Bricks094_1K-PNG_NormalGL.png',
+    './resources/images/terrain/Ground080_1K-PNG_NormalGL.png',
+]);
+
+const aoMapArrayPromise = loadTextureArray([
+    './resources/images/terrain/Rock028_1K-PNG_AmbientOcclusion.png',
+    './resources/images/terrain/Grass001_1K-PNG_AmbientOcclusion.png',
+    './resources/images/terrain/Ground051_1K-PNG_AmbientOcclusion.png',
+    './resources/images/terrain/Bark014_1K-PNG_AmbientOcclusion.png',
+    './resources/images/terrain/Bricks094_1K-PNG_AmbientOcclusion.png',
+    './resources/images/terrain/Ground080_1K-PNG_AmbientOcclusion.png',
+]);
+
+const roughnessMapArrayPromise = loadTextureArray([
+    './resources/images/terrain/Rock028_1K-PNG_Roughness.png',
+    './resources/images/terrain/Grass001_1K-PNG_Roughness.png',
+    './resources/images/terrain/Ground051_1K-PNG_Roughness.png',
+    './resources/images/terrain/Bark014_1K-PNG_Roughness.png',
+    './resources/images/terrain/Bricks094_1K-PNG_Roughness.png',
+    './resources/images/terrain/Ground080_1K-PNG_Roughness.png',
+]);
+
+Promise.all([mapArrayPromise, normalMapArrayPromise, aoMapArrayPromise, roughnessMapArrayPromise])
+.then(([mapArrayA, normalArrayA, aoArrayA, roughnessArrayA]) => {
+    // Assign the loaded texture arrays to the shader uniforms
+    mapArray = mapArrayA;
+    normalArray = normalArrayA;
+    aoArray = aoArrayA;
+    roughnessArray = roughnessArrayA;
+
+    console.log('Both texture arrays are set as shader uniforms');
+}).catch(error => {
+    console.error('Error loading texture arrays:', error);
+});
+
+let map = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Color.png' );
+let aoMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_AmbientOcclusion.png' );
+let normalMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_NormalGL.png' );
+let roughnessMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Roughness.png' );
 // let displacementMap = new THREE.TextureLoader().load( './resources/images/terrain/Bricks094_1K-PNG_Displacement.png' );
 
-let map = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Color.png' );
-// let aoMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_AmbientOcclusion.png' );
-let normalMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_NormalGL.png' );
-let roughnessMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Roughness.png' );
-let metalnessMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Metalness.png' );
-// let displacementMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Displacement.png' );
+// // let map = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Color.png' );
+// // let aoMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_AmbientOcclusion.png' );
+// // let normalMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_NormalGL.png' );
+// // let roughnessMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Roughness.png' );
+// let metalnessMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Metalness.png' );
+// // let displacementMap = new THREE.TextureLoader().load( './resources/images/terrain/Metal049A_1K-PNG_Displacement.png' );
 
-map.wrapT = THREE.RepeatWrapping;
-map.wrapS = THREE.RepeatWrapping;
-normalMap.wrapT = THREE.RepeatWrapping;
-normalMap.wrapS = THREE.RepeatWrapping;
-// displacementMap.wrapT = THREE.RepeatWrapping;
-// displacementMap.wrapS = THREE.RepeatWrapping;
-normalMap.flipY = true;
-map.anisotropy = 8;
-normalMap.anisotropy = 8;
-// displacementMap.anisotropy = 8;
-// aoMap.anisotropy = 8;
-roughnessMap.anisotropy = 8;
-roughnessMap.wrapT = THREE.RepeatWrapping;
-roughnessMap.wrapS = THREE.RepeatWrapping;
+// map.wrapT = THREE.RepeatWrapping;
+// map.wrapS = THREE.RepeatWrapping;
+// normalMap.wrapT = THREE.RepeatWrapping;
+// normalMap.wrapS = THREE.RepeatWrapping;
+// // displacementMap.wrapT = THREE.RepeatWrapping;
+// // displacementMap.wrapS = THREE.RepeatWrapping;
+// normalMap.flipY = true;
+// map.anisotropy = 8;
+// normalMap.anisotropy = 8;
+// // displacementMap.anisotropy = 8;
+// // aoMap.anisotropy = 8;
+// roughnessMap.anisotropy = 8;
+// roughnessMap.wrapT = THREE.RepeatWrapping;
+// roughnessMap.wrapS = THREE.RepeatWrapping;
 // aoMap.wrapT = THREE.RepeatWrapping;
 // aoMap.wrapS = THREE.RepeatWrapping;
-metalnessMap.anisotropy = 8;
-metalnessMap.wrapT = THREE.RepeatWrapping;
-metalnessMap.wrapS = THREE.RepeatWrapping;
+// metalnessMap.anisotropy = 8;
+// metalnessMap.wrapT = THREE.RepeatWrapping;
+// metalnessMap.wrapS = THREE.RepeatWrapping;
 const terrainMaterial= (envmap) => {
 
     // const mat2 = new THREE.MeshStandardMaterial( {
@@ -265,28 +317,32 @@ const terrainMaterial= (envmap) => {
         map: map,
         normalMap: normalMap,
         normalMapType: THREE.ObjectSpaceNormalMap,
-        // aoMap: aoMap,
+        aoMap: aoMap,
         // displacementMap: displacementMap,
         // displacementScale: 2.0,
         roughnessMap: roughnessMap,
         // metalnessMap: metalnessMap,
-        metalness: 1.0,
-        envmap: envmap,
-        // normalScale: new THREE.Vector2(1, 1)
+        // metalness: 0.5,
+        // envmap: envmap,
+        // normalScale: new THREE.Vector2(2, 2)
+        // envMapIntensity: 1.0
     } );
 
     mat.onBeforeCompile = ( shader ) => {
-
-        shader.uniforms.tDiff = {
-            // value: [
-            // 	rocktex,
-            // 	grasstex,
-            // 	dirttex,
-            //     woodtex
-            // ]
-            value: textureArray
+        console.log(mapArray)
+        shader.uniforms.mapArray = {
+            value: mapArray
         };
-        shader.uniforms.repeatScale = {value: 1.0 / 5.0};
+        shader.uniforms.normalArray = {
+            value: normalArray
+        };
+        shader.uniforms.aoArray = {
+            value: aoArray
+        };
+        shader.uniforms.roughnessArray = {
+            value: roughnessArray
+        };
+        shader.uniforms.repeatScale = {value: 1.0 / 8.0};
 
         shader.vertexShader = `
             attribute vec3 adjusted;
@@ -360,7 +416,10 @@ const terrainMaterial= (envmap) => {
         // precision highp sampler2DArray;
 
         shader.fragmentShader = `
-            uniform sampler2DArray tDiff;
+            uniform sampler2DArray mapArray;
+            uniform sampler2DArray normalArray;
+            uniform sampler2DArray aoArray;
+            uniform sampler2DArray roughnessArray;
             uniform float repeatScale;
             varying vec3 vPos;
             varying vec3 vNormal2;
@@ -383,39 +442,35 @@ const terrainMaterial= (envmap) => {
                     // return pow(blending, vec3(4.0, 4.0, 4.0));
                 }
 
-                vec4 getTriPlanarTexture(){
-                    float pixelSize = 1.0 / 32.0;
-                    vec3 pos = floor(vPos / pixelSize) * pixelSize;
-                    // vec3 pos = vPos;
-                                        
-                    //mesh scaled
-                    float repeatScale = 0.25;
+                
+                vec3 getPos() {
+                    float pixelSize = 1.0 / 64.0;
+                    // return floor(vPos / pixelSize) * pixelSize;
+                    return vPos;
+                }
+
+                vec4 getTriPlanarTexture(sampler2DArray tex){
+                    vec3 pos = getPos();
 
                     vec3 blending = getTriPlanarBlend( vNormal2 );
                     
                     vec3 xaxis = 
-                        texture( tDiff, vec3(pos.yz * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
-                        texture( tDiff, vec3(pos.yz * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
-                        texture( tDiff, vec3(pos.yz * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z;
+                        texture( tex, vec3(pos.zy * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
+                        texture( tex, vec3(pos.zy * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
+                        texture( tex, vec3(pos.zy * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z;
 
                     vec3 zaxis = 
-                        texture( tDiff, vec3(pos.xy * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
-                        texture( tDiff, vec3(pos.xy * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
-                        texture( tDiff, vec3(pos.xy * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z;
+                        texture( tex, vec3(pos.xy * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
+                        texture( tex, vec3(pos.xy * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
+                        texture( tex, vec3(pos.xy * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z;
 
                     vec3 yaxis = 
-                        texture( tDiff, vec3(pos.xz * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
-                        texture( tDiff, vec3(pos.xz * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
-                        texture( tDiff, vec3(pos.xz * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z;
+                        texture( tex, vec3(pos.xz * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
+                        texture( tex, vec3(pos.xz * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
+                        texture( tex, vec3(pos.xz * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z;
 
                     return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z, 1.0 );
                 
-                }
-
-                vec3 getPos() {
-                    float pixelSize = 1.0 / 32.0;
-                    // return floor(vPos / pixelSize) * pixelSize;
-                    return vPos;
                 }
 
                 vec3 getTriTextureBasic(sampler2D tex){
@@ -457,44 +512,43 @@ const terrainMaterial= (envmap) => {
         shader.fragmentShader = shader.fragmentShader.replace(
             'vec4 diffuseColor = vec4( diffuse, opacity );',
             `
-            vec4 diffuseColor =  vec4( getTriTextureBlend(map).rgb, opacity );
+            vec4 diffuseColor =  vec4( getTriPlanarTexture(mapArray).rgb, opacity );
             // vec4 diffuseColor =  vec4(.5,.5,.5, 1.0);
             `
         );
 
-        console.log(shader.defines)
-
         shader.fragmentShader = shader.fragmentShader.replace(
             '#include <normal_fragment_maps>',
             `
-            vec3 texelNormal = normalize(getTriTextureBlend( normalMap ).xyz) * 2.0 - 1.0;
-            texelNormal.xy *= normalScale;
+                vec3 texelNormal = normalize(getTriPlanarTexture( normalArray ).xyz) * 2.0 - 1.0;
+                texelNormal.xy *= normalScale;
 
-            // normal = normalize( vNormal + texelNormal );
-            // normal = normalize( mix(-vViewPosition, texelNormal, 0.5) );
+                // normal = normalize( vNormal + texelNormal );
+                // normal = normalize( mix(-vViewPosition, texelNormal, 0.5) );
 
-            vec3 q0 = dFdx( - vViewPosition.xyz );
-            vec3 q1 = dFdy( - vViewPosition.xyz );
-            // vec2 st0 = dFdx( uv.st );
-            // vec2 st1 = dFdy( uv.st );
+                vec3 q0 = dFdx( - vViewPosition.xyz );
+                vec3 q1 = dFdy( - vViewPosition.xyz );
+                vec2 st0 = dFdx( vec2(1,1) );
+                vec2 st1 = dFdy( vec2(1,1) );
 
-            vec3 N = normalize( vNormal ); // normalized
+                vec3 N = normalize( vNormal ); // normalized
 
-            vec3 q1perp = cross( q1, N );
-            vec3 q0perp = cross( N, q0 );
+                vec3 q1perp = cross( q1, N );
+                vec3 q0perp = cross( N, q0 );
 
-            // vec3 T = q1perp * st0.x + q0perp * st1.x;
-            vec3 T = q1perp;
-            // vec3 B = q1perp * st0.y + q0perp * st1.y;
-            vec3 B = q0perp;
+                // vec3 T = q1perp * st0.x + q0perp * st1.x;
+                vec3 T = q1perp;
+                // vec3 B = q1perp * st0.y + q0perp * st1.y;
+                vec3 B = q0perp;
 
-            float det = max( dot( T, T ), dot( B, B ) );
-            float scale = ( det == 0.0 ) ? 0.0 : inversesqrt( det );
+                float det = max( dot( T, T ), dot( B, B ) );
+                float scale = ( det == 0.0 ) ? 0.0 : inversesqrt( det );
 
-            mat3 tbn = mat3( T * scale, B * scale, N );
+                mat3 tbn = mat3( T * scale, B * scale, N );
 
-            normal = normalize( tbn * texelNormal );
-            // normal = normalize( cross( vNormal, -texelNormal ) );
+                normal = normalize( tbn * texelNormal );
+                // normal = normalize( vNormal );
+            
             `
         );
 
@@ -504,7 +558,7 @@ const terrainMaterial= (envmap) => {
             #ifdef USE_AOMAP
 
                 // reads channel R, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
-                float ambientOcclusion = ( getTriTextureBlend( aoMap ).r - 1.0 ) * aoMapIntensity + 1.0;
+                float ambientOcclusion = ( getTriPlanarTexture( aoArray ).r - 1.0 ) * aoMapIntensity + 1.0;
 
                 reflectedLight.indirectDiffuse *= ambientOcclusion;
 
@@ -535,7 +589,7 @@ const terrainMaterial= (envmap) => {
 
             #ifdef USE_ROUGHNESSMAP
 
-                vec3 texelRoughness = getTriTextureBlend( roughnessMap );
+                vec3 texelRoughness = getTriPlanarTexture( roughnessArray ).rgb;
 
                 // reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
                 roughnessFactor *= texelRoughness.g;

@@ -13,7 +13,10 @@ export default class Chunk extends VolumetricChunk {
 		this.sampler;
 		this.adjustedBuffer = [];
 		this.adjustedIndices = new Int8Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
-		this.adjustedIndicesTemp = new Int8Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
+		this.adjustedIndices.fill(Math.floor(Math.random() * 6));
+
+		this.adjustedIndicesTemp = new Int8Array( this.adjustedIndices );
+		this.adjustedIndicesTemp.fill(Math.floor(Math.random(6) * 6));
 
 		this.lightBuffer = [];
 		this.lightIncidents = new Float32Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
