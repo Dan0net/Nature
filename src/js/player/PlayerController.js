@@ -160,7 +160,7 @@ export default class Player extends THREE.Object3D {
 			//lights
 			const skyColor = 0xB1E1FF;  // light blue
 			const groundColor = 0xB97A20;  // brownish orange
-			const Hintensity = 0.25;
+			const Hintensity = 0.0;
 			const Hlight = new THREE.HemisphereLight(skyColor, groundColor, Hintensity);
 			app.scene.add(Hlight);
 
@@ -180,7 +180,9 @@ export default class Player extends THREE.Object3D {
 			this.shadowLight.shadow.camera.right = 60;
 			this.shadowLight.shadow.camera.top = 60;
 			this.shadowLight.shadow.camera.bottom = -60;
-			this.shadowLight.shadow.normalBias = 0.25;
+			// TODO fix bias with normal maps
+			this.shadowLight.shadow.bias = 0.001;
+			this.shadowLight.shadow.normalBias = 0.5;
 			app.scene.add(this.shadowLight);
 			// app.scene.add(this.shadowLight.target);
 

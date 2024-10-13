@@ -203,7 +203,8 @@ export default class VolumetricChunk {
 			adjusted,
 			bary,
 			light,
-			lightIndices
+			lightIndices,
+			normal
 		} = data;
 
 		if ( indices.length === 0 ) return;
@@ -271,6 +272,11 @@ export default class VolumetricChunk {
 		lightBufferAttribute.needsUpdate = true;
 
 		this.lightIndices = lightIndices;
+
+		const normalBufferAttribute = new THREE.BufferAttribute( normal, 3 )
+		buffer.setAttribute( 'normal', normalBufferAttribute );
+		normalBufferAttribute.needsUpdate = true;
+		// buffer.computeVertexNormals();
 		
 		// meshObjs.indices.set(indices)
 
@@ -278,7 +284,6 @@ export default class VolumetricChunk {
 
 		// meshObjs.adjusted.set(adjusted)
 
-		buffer.computeVertexNormals();
 		buffer.computeBoundsTree();
 
 		Object.assign(meshObjs, {
