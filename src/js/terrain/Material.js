@@ -259,7 +259,7 @@ const terrainMaterial= (envmap) => {
         // displacementMap: displacementMap,
         roughnessMap: roughnessMap,
         envmap: envmap,
-        // normalScale: new THREE.Vector2(0, 0)
+        normalScale: new THREE.Vector2(1, 1)
     } );
     console.log(mat.normalMapType, THREE.TangentSpaceNormalMap)
     mat.onBeforeCompile = ( shader ) => {
@@ -273,6 +273,7 @@ const terrainMaterial= (envmap) => {
             // ]
             value: textureArray
         };
+        shader.uniforms.repeatScale = {value: 1.0 / 5.0};
 
         shader.vertexShader = `
             attribute vec3 adjusted;
@@ -313,6 +314,7 @@ const terrainMaterial= (envmap) => {
 
         shader.fragmentShader = `
             uniform sampler2DArray tDiff;
+            uniform float repeatScale;
             varying vec3 vPos;
             varying vec3 vNormal2;
             flat in vec3 vAdjusted;
@@ -372,8 +374,6 @@ const terrainMaterial= (envmap) => {
                 vec3 getTriTextureBasic(sampler2D tex){
                     vec3 pos = getPos();
                                         
-                    float repeatScale = 0.25;
-
                     vec3 blending = getTriPlanarBlend( vNormal2 );
 
                     if (blending.x >= blending.y && blending.x >= blending.z) {
@@ -387,8 +387,6 @@ const terrainMaterial= (envmap) => {
                 vec3 getTriTextureBlend(sampler2D tex){
                     vec3 pos = getPos();
                                         
-                    float repeatScale = 0.25;
-
                     vec3 blending = getTriPlanarBlend( vNormal2 );
 
                     vec3 xaxis = 
@@ -422,12 +420,34 @@ const terrainMaterial= (envmap) => {
         shader.fragmentShader = shader.fragmentShader.replace(
             '#include <normal_fragment_maps>',
             `
-            #ifdef USE_NORMALMAP_OBJECTSPACE
-                vec3 texelNormal = normalize(getTriTextureBlend( normalMap ).xyz) * 2.0 - 1.0;
-                
-                // normal = normalize( vNormal + texelNormal );
-                normal = normalize( mix(-vViewPosition, texelNormal, 0.5) );
-            #endif
+            vec3 texelNormal = normalize(getTriTextureBlend( normalMap ).xyz) * 2.0 - 1.0;
+            texelNormal.xy *= normalScale;
+
+            // normal = normalize( vNormal + texelNormal );
+            // normal = normalize( mix(-vViewPosition, texelNormal, 0.5) );
+
+            vec3 q0 = dFdx( - vViewPosition.xyz );
+            vec3 q1 = dFdy( - vViewPosition.xyz );
+            // vec2 st0 = dFdx( uv.st );
+            // vec2 st1 = dFdy( uv.st );
+
+            vec3 N = normalize( vNormal ); // normalized
+
+            vec3 q1perp = cross( q1, N );
+            vec3 q0perp = cross( N, q0 );
+
+            // vec3 T = q1perp * st0.x + q0perp * st1.x;
+            vec3 T = q1perp;
+            // vec3 B = q1perp * st0.y + q0perp * st1.y;
+            vec3 B = q0perp;
+
+            float det = max( dot( T, T ), dot( B, B ) );
+            float scale = ( det == 0.0 ) ? 0.0 : inversesqrt( det );
+
+            mat3 tbn = mat3( T * scale, B * scale, N );
+
+            normal = normalize( tbn * texelNormal );
+            // normal = normalize( cross( vNormal, -texelNormal ) );
             `
         );
 
