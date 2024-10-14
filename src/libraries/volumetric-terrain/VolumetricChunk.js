@@ -6,7 +6,9 @@ const CHUNK_OVERLAP = 2;
 
 export default class VolumetricChunk {
 
-	constructor( x, y, z, terrain, callback ) {	
+	constructor( x, y, z, generateSun = false, terrain, callback ) {
+		console.log(x,y,z,generateSun)
+
 		//parent
 		this.terrain = terrain;
 		this.needsUpdate = false;
@@ -31,6 +33,8 @@ export default class VolumetricChunk {
 		this.mesh;
 		this.meshTempObjs = {};
 		this.meshTemp;
+
+		this.generateSun = generateSun;
 
 		this.debugGeom = new THREE.BoxGeometry(
 			( this.terrain.gridSize.x - CHUNK_OVERLAP ) * this.terrain.terrainScale.x,

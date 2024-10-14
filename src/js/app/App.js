@@ -119,7 +119,7 @@ export default class App {
 		this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 128, { generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
 		this.cubeCamera = new THREE.CubeCamera(1, 1000, this.cubeRenderTarget ); // Near, far, and resolution
 		this.cubeCamera.update(this.renderer, this.scene);
-		this.scene.environment = this.cubeRenderTarget.texture;
+		// this.scene.environment = this.cubeRenderTarget.texture;
 		// console.log(this.cubeRenderTarget.texture);
 
 		return new Promise( async ( resolve ) => {
@@ -263,9 +263,9 @@ export default class App {
 		//THREE Renderer
 		this.renderer.physicallyCorrectLights = true;
 		this.renderer.outputEncoding = THREE.sRGBEncoding;
-		this.renderer.toneMapping = THREE.ReinhardToneMapping;
-		this.renderer.toneMappingExposure = 2.2;
-		this.renderer.toneMappingExposureMax = 2.2;
+		this.renderer.toneMapping = THREE.NoToneMapping;
+		this.renderer.toneMappingExposure = 1.0;
+		this.renderer.toneMappingExposureMax = 1.0;
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		this.renderer.setSize( windowWidth, windowHeight );

@@ -14,7 +14,7 @@ self.onmessage = ( { data } ) => {
 
 };
 
-function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightIncidents, lightIndices, regenerateLights = true } ) {
+function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightIncidents, lightIndices, regenerateLights = true, generateSun = false } ) {
 
 	surfaceNetEngine.createSurface( grid, [ gridSize.x, gridSize.y, gridSize.z ] ).then( generatedSurface => {
 		// const topvertmap = {};
@@ -30,18 +30,18 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 		const stack = [];
 		const gridXY = gridSize.x * gridSize.y; // Precompute grid size for efficiency
 		const gridZ = gridSize.z;
-		const decayFactor = 0.04;
+		const decayFactor = 0.02;
 
-		function lightStackPush(x, y, z, intensity) {
+		function lightStackPush(x, y, z, intensity, sun=false) {
 			const newIntensity = intensity - decayFactor;
 
 			// Push neighboring voxels onto the stack
-			stack.push([x + 1, y, z, newIntensity]); // Right
-			stack.push([x - 1, y, z, newIntensity]); // Left
-			stack.push([x, y + 1, z, newIntensity]); // Up
-			stack.push([x, y - 1, z, newIntensity]); // Down
-			stack.push([x, y, z + 1, newIntensity]); // Forward
-			stack.push([x, y, z - 1, newIntensity]); // Backward
+			stack.push([x + 1, y, z, newIntensity, false]); // Right
+			stack.push([x - 1, y, z, newIntensity, false]); // Left
+			if (!sun) stack.push([x, y + 1, z, newIntensity, false]); // Up if not sun
+			if (!sun) stack.push([x, y - 1, z, newIntensity, false]); // Down if not sun
+			stack.push([x, y, z + 1, newIntensity, false]); // Forward
+			stack.push([x, y, z - 1, newIntensity, false]); // Backward
 		}
 
 		// Loop through the light indices
@@ -54,7 +54,25 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 				const y = Math.floor((i - (z * gridXY)) / gridZ); // Precompute y index
 				const x = i - (z * gridXY) - (y * gridZ); // Precompute x index
 				// stack.push([x, y, z, intensity]); // Push to stack as array to reduce memory overhead
-				lightStackPush(x, y, z, intensity); // Push to stack as array to reduce memory overhead
+				lightStackPush(x, y, z, intensity, false); // Push to stack as array to reduce memory overhead
+			}
+		}
+
+		if (generateSun) {
+			const y = gridSize.y;
+			for (let x = 0; x < gridSize.x; x++) {
+				for (let z = 0; z < gridSize.z; z++) {
+					for (let y = gridSize.y - 1; y >= 0; y--) {
+						const p = (z * gridXY) + (y * gridZ) + x;
+						
+						if (grid[p] > 0) { // check cell is full
+							lightStackPush(x, y + 1, z, 1.0, true); // add cell above as light
+							break; //stop looping this column
+						}
+
+						lightIndices[p] = 1.0; //otherwise add cell as full light
+					}
+				}
 			}
 		}
 
@@ -62,7 +80,7 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 			lightIndices.fill(0.0);
 
 			while (stack.length > 0) {
-				const [x, y, z, intensity] = stack.pop();
+				const [x, y, z, intensity, sun] = stack.pop();
 				// console.log(x,y,z,intensity)
 
 				// Combined boundary checks for performance
@@ -77,7 +95,7 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 				// TODO fix light not propigating when on some <0.5 grid cells
 				if (grid[p] > 0) continue;
 
-				lightStackPush(x, y, z, intensity);
+				lightStackPush(x, y, z, intensity, sun);
 			}
 		}
 

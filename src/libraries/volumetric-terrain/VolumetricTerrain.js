@@ -133,6 +133,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 										this.currentCoord.x + x,
 										this.currentCoord.y + y,
 										this.currentCoord.z + z,
+										(y === this.viewDistance), // generate Sun if y is at top
 										this,
 										( chunk ) => LOAD_INITIAL_TERRAIN( chunk )
 									);
@@ -212,6 +213,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 						this.chunkBuildQueue[ chunkKey ].x,
 						this.chunkBuildQueue[ chunkKey ].y,
 						this.chunkBuildQueue[ chunkKey ].z,
+						false,
 						this,
 						chunk => {
 

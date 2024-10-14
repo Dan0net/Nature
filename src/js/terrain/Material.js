@@ -128,7 +128,9 @@ function loadTextureArray(imagePaths) {
                 if (index === 0) {
                     // Set width and height based on the first image
                     width = image.width;
+                    // width = 512;
                     height = image.height;
+                    // height = 512;
 
                     // Initialize combined data for all layers
                     combinedData = new Uint8Array(width * height * 4 * layers); // 4 channels (RGBA)
@@ -140,7 +142,7 @@ function loadTextureArray(imagePaths) {
                     textureArray.wrapT = THREE.RepeatWrapping;
                     textureArray.wrapS = THREE.RepeatWrapping;
                     textureArray.minFilter = THREE.LinearMipMapLinearFilter;
-                    textureArray.maxFilter = THREE.LinearMipMapLinearFilter;
+                    textureArray.maxFilter = THREE.LinearFilter;
                     textureArray.anisotropy = 8;
                 }
 
@@ -204,6 +206,7 @@ function loadGZTexture() {
                 textureArray.type = THREE.UnsignedByteType;
                 textureArray.wrapT = THREE.RepeatWrapping;
                 textureArray.wrapS = THREE.RepeatWrapping;
+                textureArray.colorSpace = THREE.SRGBColorSpace;
                 textureArray.needsUpdate = true;
             });
         }
@@ -216,8 +219,8 @@ const mapArrayPromise = loadTextureArray([
     './resources/images/terrain/Rock028_1K-PNG_Color.png',
     './resources/images/terrain/Grass001_1K-PNG_Color.png',
     './resources/images/terrain/Ground051_1K-PNG_Color.png',
-    './resources/images/terrain/Bark014_1K-PNG_Color.png',
-    './resources/images/terrain/Bricks094_1K-PNG_Color.png',
+    './resources/images/terrain/TH_Old_Bark_Brown_baseColor.png',
+    './resources/images/terrain/TH_Castle_Brick_Broken_baseColor.png',
     './resources/images/terrain/Ground080_1K-PNG_Color.png',
 ]);
 
@@ -225,8 +228,8 @@ const normalMapArrayPromise = loadTextureArray([
     './resources/images/terrain/Rock028_1K-PNG_NormalGL.png',
     './resources/images/terrain/Grass001_1K-PNG_NormalGL.png',
     './resources/images/terrain/Ground051_1K-PNG_NormalGL.png',
-    './resources/images/terrain/Bark014_1K-PNG_NormalGL.png',
-    './resources/images/terrain/Bricks094_1K-PNG_NormalGL.png',
+    './resources/images/terrain/TH_Old_Bark_Brown_normal.png',
+    './resources/images/terrain/TH_Castle_Brick_Broken_normal.png',
     './resources/images/terrain/Ground080_1K-PNG_NormalGL.png',
 ]);
 
@@ -234,8 +237,8 @@ const aoMapArrayPromise = loadTextureArray([
     './resources/images/terrain/Rock028_1K-PNG_AmbientOcclusion.png',
     './resources/images/terrain/Grass001_1K-PNG_AmbientOcclusion.png',
     './resources/images/terrain/Ground051_1K-PNG_AmbientOcclusion.png',
-    './resources/images/terrain/Bark014_1K-PNG_AmbientOcclusion.png',
-    './resources/images/terrain/Bricks094_1K-PNG_AmbientOcclusion.png',
+    './resources/images/terrain/white.png',
+    './resources/images/terrain/white.png',
     './resources/images/terrain/Ground080_1K-PNG_AmbientOcclusion.png',
 ]);
 
@@ -243,8 +246,8 @@ const roughnessMapArrayPromise = loadTextureArray([
     './resources/images/terrain/Rock028_1K-PNG_Roughness.png',
     './resources/images/terrain/Grass001_1K-PNG_Roughness.png',
     './resources/images/terrain/Ground051_1K-PNG_Roughness.png',
-    './resources/images/terrain/Bark014_1K-PNG_Roughness.png',
-    './resources/images/terrain/Bricks094_1K-PNG_Roughness.png',
+    './resources/images/terrain/TH_Old_Bark_Brown_roughness.png',
+    './resources/images/terrain/TH_Castle_Brick_Broken_roughness.png',
     './resources/images/terrain/Ground080_1K-PNG_Roughness.png',
 ]);
 
@@ -322,7 +325,7 @@ const terrainMaterial= (envmap) => {
         // displacementScale: 2.0,
         roughnessMap: roughnessMap,
         // metalnessMap: metalnessMap,
-        metalness: 0.5,
+        metalness: 0.25,
         // envMap: envmap,
         // normalScale: new THREE.Vector2(2, 2)
         // envMapIntensity: 0.5,
@@ -523,9 +526,6 @@ const terrainMaterial= (envmap) => {
             `
                 vec3 texelNormal = normalize(getTriPlanarTexture( normalArray ).xyz) * 2.0 - 1.0;
                 texelNormal.xy *= normalScale;
-
-                // normal = normalize( vNormal + texelNormal );
-                // normal = normalize( mix(-vViewPosition, texelNormal, 0.5) );
 
                 vec3 q0 = dFdx( - vViewPosition.xyz );
                 vec3 q1 = dFdy( - vViewPosition.xyz );

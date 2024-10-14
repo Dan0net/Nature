@@ -183,6 +183,7 @@ export default class TerrainController extends VolumetricTerrain {
 										this.currentCoord.x + x,
 										this.currentCoord.y + y,
 										this.currentCoord.z + z,
+										(y === 0), // generate Sun if y is at top
 										this,
 										( chunk ) => LOAD_INITIAL_TERRAIN( chunk )
 									);
