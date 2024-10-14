@@ -21,7 +21,7 @@ export default class Chunk extends VolumetricChunk {
 		this.lightBuffer = [];
 		this.lightIncidents = new Float32Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
 		this.lightIndices = new Float32Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
-		this.lightNeedsUpdating = false;
+		this.lightNeedsUpdating = true;
 	}
 
 	flipMesh() {
@@ -79,14 +79,14 @@ export default class Chunk extends VolumetricChunk {
 					this.gridTemp = new Float32Array(data.grid);
 					this.terrainHeights = data.terrainHeights;
 
-					this.adjust( 
-						this.position.clone().add(
-							new THREE.Vector3(5,5,5)
-						), 
-						new THREE.Vector3(6,6,6),
-						BuildPresets[3], 
-						false 
-					);
+					// this.adjust( 
+					// 	this.position.clone().add(
+					// 		new THREE.Vector3(5,5,5)
+					// 	), 
+					// 	new THREE.Vector3(6,6,6),
+					// 	BuildPresets[3], 
+					// 	false 
+					// );
 
 					if ( this.terrain.DB ) {
 

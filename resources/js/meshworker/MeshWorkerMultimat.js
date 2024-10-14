@@ -30,76 +30,100 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 		const stack = [];
 		const gridXY = gridSize.x * gridSize.y; // Precompute grid size for efficiency
 		const gridZ = gridSize.z;
-		const decayFactor = 0.02;
+		const decayFactor = 0.04;
 
-		function lightStackPush(x, y, z, intensity, sun=false) {
-			const newIntensity = intensity - decayFactor;
+		if ( regenerateLights ) {
+			lightIndices.fill(0.0);
 
-			// Push neighboring voxels onto the stack
-			stack.push([x + 1, y, z, newIntensity, false]); // Right
-			stack.push([x - 1, y, z, newIntensity, false]); // Left
-			if (!sun) stack.push([x, y + 1, z, newIntensity, false]); // Up if not sun
-			if (!sun) stack.push([x, y - 1, z, newIntensity, false]); // Down if not sun
-			stack.push([x, y, z + 1, newIntensity, false]); // Forward
-			stack.push([x, y, z - 1, newIntensity, false]); // Backward
-		}
+			function lightStackPush(x, y, z, intensity, sun=false) {
+				const newIntensity = intensity - decayFactor;
 
-		// Loop through the light indices
-		for (let i = 0; i < lightIncidents.length; i++) {
-			if (grid[i] > 0) continue;
-
-			const intensity = lightIncidents[i];
-			if (intensity > 0) {
-				const z = Math.floor(i / gridXY); // Precompute z index
-				const y = Math.floor((i - (z * gridXY)) / gridZ); // Precompute y index
-				const x = i - (z * gridXY) - (y * gridZ); // Precompute x index
-				// stack.push([x, y, z, intensity]); // Push to stack as array to reduce memory overhead
-				lightStackPush(x, y, z, intensity, false); // Push to stack as array to reduce memory overhead
+				// Push neighboring voxels onto the stack
+				stack.push([x + 1, y, z, newIntensity, false]); // Right
+				stack.push([x - 1, y, z, newIntensity, false]); // Left
+				if (!sun) stack.push([x, y + 1, z, newIntensity, false]); // Up if not sun
+				if (!sun) stack.push([x, y - 1, z, newIntensity, false]); // Down if not sun
+				stack.push([x, y, z + 1, newIntensity, false]); // Forward
+				stack.push([x, y, z - 1, newIntensity, false]); // Backward
 			}
-		}
+			let acc5 = 0;
+			// Loop through the light indices
+			for (let i = 0; i < lightIncidents.length; i++) {
+				if (grid[i] > 0) continue;
 
-		if (generateSun) {
-			const y = gridSize.y;
-			for (let x = 0; x < gridSize.x; x++) {
-				for (let z = 0; z < gridSize.z; z++) {
-					for (let y = gridSize.y - 1; y >= 0; y--) {
-						const p = (z * gridXY) + (y * gridZ) + x;
-						
-						if (grid[p] > 0) { // check cell is full
-							lightStackPush(x, y + 1, z, 1.0, true); // add cell above as light
-							break; //stop looping this column
+				const intensity = lightIncidents[i];
+				if (intensity > 0) {
+					const z = Math.floor(i / gridXY); // Precompute z index
+					const y = Math.floor((i - (z * gridXY)) / gridZ); // Precompute y index
+					const x = i - (z * gridXY) - (y * gridZ); // Precompute x index
+					lightIndices[i] = 1.0; // set cell to full light
+					acc5++;
+					lightStackPush(x, y, z, intensity, false); // Push to stack as array to reduce memory overhead
+				}
+			}
+			console.log(acc5)
+			let acc0 = 0;
+			if (generateSun) {
+				const y = gridSize.y;
+				for (let x = 0; x < gridSize.x; x++) {
+					for (let z = 0; z < gridSize.z; z++) {
+						for (let y = gridSize.y - 1; y >= 0; y--) {
+							const p = (z * gridXY) + (y * gridZ) + x;
+							
+							if (grid[p] > 0) { // check cell is full
+								acc0++
+								lightStackPush(x, y + 1, z, 1.0, true); // add cell above as light
+								break; //stop looping this column
+							}
+
+							lightIndices[p] = 1.0; //otherwise add cell as full light
 						}
-
-						lightIndices[p] = 1.0; //otherwise add cell as full light
 					}
 				}
 			}
-		}
 
-		function lightFill3D() {
-			lightIndices.fill(0.0);
+			console.log('sun acc', acc0)
 
-			while (stack.length > 0) {
-				const [x, y, z, intensity, sun] = stack.pop();
-				// console.log(x,y,z,intensity)
+			function lightFill3D() {
+				let acc = 0;
+				let acc1 = 0;
+				let acc2 = 0;
+				let acc4 = 0;
 
-				// Combined boundary checks for performance
-				if (x < 0 || x >= gridSize.x || y < 0 || y >= gridSize.y || z < 0 || z >= gridSize.z) continue;
+				while (stack.length > 0) {
+					const [x, y, z, intensity, sun] = stack.shift();
+					// console.log(x,y,z,intensity)
 
-				const p = (z * gridXY) + (y * gridZ) + x;
+					// Combined boundary checks for performance
+					if (x < 0 || x >= gridSize.x || y < 0 || y >= gridSize.y || z < 0 || z >= gridSize.z) {
+						acc2++;
+						continue;
+					}
 
-				if (lightIndices[p] >= intensity) continue;
+					const p = (z * gridXY) + (y * gridZ) + x;
 
-				lightIndices[p] = intensity;
+					if (lightIndices[p] >= intensity) {
+						acc++
+						continue;
+					}
 
-				// TODO fix light not propigating when on some <0.5 grid cells
-				if (grid[p] > 0) continue;
+					lightIndices[p] = intensity;
 
-				lightStackPush(x, y, z, intensity, sun);
+					// TODO fix light not propigating when on some 0-0.5 grid cells
+					if (grid[p] > 0) {
+						acc1++;
+						continue;
+					}
+					acc4++;
+					lightStackPush(x, y, z, intensity, sun);
+				}
+				console.log('light acc', acc, acc1, acc2, acc4)
+
 			}
-		}
 
-		if ( regenerateLights ) lightFill3D();
+
+			lightFill3D();
+		}
 
 		const getMaterialLightValue = (v) => {
 			x = Math.round( v[ 0 ] );

@@ -7,7 +7,7 @@ const CHUNK_OVERLAP = 2;
 export default class VolumetricChunk {
 
 	constructor( x, y, z, generateSun = false, terrain, callback ) {
-		console.log(x,y,z,generateSun)
+		// console.log(x,y,z,generateSun)
 
 		//parent
 		this.terrain = terrain;
@@ -340,7 +340,7 @@ export default class VolumetricChunk {
 		}
 
 		this.adjustGrid( localCenter, buildExtents, buildConfiguration );
-		console.log(buildConfiguration.material);
+		// console.log(buildConfiguration.material);
 
 		// if (!useTemporaryGrid) this.terrain.adjustInstancedObjects( this.chunkKey, center, 5 );
 	}

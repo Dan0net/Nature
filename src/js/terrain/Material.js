@@ -402,7 +402,8 @@ const terrainMaterial= (envmap) => {
                 vNormal2 = normal;
                 vAdjusted = adjusted;
                 vBary = bary;
-                ambientLightColor = vec3(light,light,light);
+                float lightPow = pow(light, 0.6);
+                ambientLightColor = vec3(lightPow, lightPow, lightPow);
                 `
             );
 
