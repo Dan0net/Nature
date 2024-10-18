@@ -75,7 +75,6 @@ export default class VolumetricChunk {
 	}
 
 	flipMesh() {
-
 		if ( this.mesh ) this.mesh.visible = false;
 		if (this.meshTemp) this.meshTemp.visible = false;
 

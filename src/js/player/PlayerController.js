@@ -205,6 +205,19 @@ export default class Player extends THREE.Object3D {
 				this.buildWireframeMaterial 
 			);
 			app.scene.add(this.buildWireframe);
+
+			this.debugGeom = new THREE.BoxGeometry(1,1,1);
+
+			this.debugMesh = new THREE.Mesh(
+				this.debugGeom,
+				new THREE.MeshBasicMaterial(0xff0000)
+			);
+
+			this.debugWireframe = new THREE.BoxHelper( 
+				this.debugMesh, 
+				0xffff00
+			);
+			app.scene.add(this.debugWireframe)
 		}
 
 		this.updateCameraCollision();
@@ -756,8 +769,7 @@ export default class Player extends THREE.Object3D {
 			center = this.intersectPoint.point.clone()
 			this.buildMarker.visible = true;
 			this.buildMarker.position.copy( this.intersectPoint.point );
-			this.buildMarker.lookAt( center );
-
+			this.buildMarker.lookAt( center.clone().add(this.intersectPoint.normal) );
 		} else {
 			const v = new THREE.Vector3();
 			const p = new THREE.Vector3();
@@ -771,40 +783,86 @@ export default class Player extends THREE.Object3D {
 			this.buildMarker.visible = false;
 		}
 
-		if ( this.buildConfiguration.align === 'base' ) {
-			center.add(new THREE.Vector3(
-				0,
-				this.buildConfiguration.size.y/2,
-				0
-			))
-		}
-
 		if (   !this.buildCenterPrevious 
 			|| this.buildConfiguration.needsUpdating
 			|| !center.equals(this.buildCenterPrevious) 
 			|| isPlacing){
-
-			this.buildWireframe.scale.copy( new THREE.Vector3(1,1,1).multiplyScalar(this.buildConfiguration.constructive ? 1.2 : 1.0) )
-			this.buildWireframe.position.copy( center )
-			this.buildWireframe.setRotationFromEuler( this.buildConfiguration.rotation )
 			
+			this.buildWireframe.scale.set(1,1,1);
+
+			// apply build rotation
+			const baseQuaternion = new THREE.Quaternion().setFromEuler(this.buildConfiguration.rotation);
+			this.buildWireframe.quaternion.copy(baseQuaternion);
+			
+			// calc bbox for voxel range
 			this.buildWireframe.geometry.computeBoundingBox();
 			const bbox = new THREE.Box3();
 			bbox.setFromObject(this.buildWireframe);
-			const extents = new THREE.Vector3(
-				Math.ceil(bbox.max.x - bbox.min.x + 1),
-				Math.ceil(bbox.max.y - bbox.min.y + 1),
-				Math.ceil(bbox.max.z - bbox.min.z + 1),
+			const voxelExtents = new THREE.Vector3(
+				bbox.max.x - bbox.min.x,
+				bbox.max.y - bbox.min.y,
+				bbox.max.z - bbox.min.z,
 			)
+
+			// if we touch terrain and need to fancy project the build obj
+			if ( this.intersectPoint && this.buildConfiguration.align === 'base' ){
+				// rotate build mesh by build rotation and inverse to normal
+				const inverseNormal = new THREE.Vector3(-this.intersectPoint.normal.x, 0, -this.intersectPoint.normal.z)
+				const forward = new THREE.Vector3(0, 0, 1);
+				const normalQuaternion = new THREE.Quaternion().setFromUnitVectors(forward, inverseNormal);
+				const tempQuaternion = new THREE.Quaternion().multiplyQuaternions(baseQuaternion.clone().invert(), normalQuaternion);
+				this.buildWireframe.quaternion.copy(tempQuaternion);
+				
+				// get this bbox to figre out offset
+				this.buildWireframe.geometry.computeBoundingBox();
+				bbox.setFromObject(this.buildWireframe);
+				const extents = new THREE.Vector3(
+					bbox.max.x - bbox.min.x,
+					bbox.max.y - bbox.min.y,
+					bbox.max.z - bbox.min.z,
+				)
+				
+				if ( this.intersectPoint.normal.y < 0.9) {
+					const offset = new THREE.Vector3(
+						0,0,extents.z/2
+					);
+
+					// rotate offset by normal
+					const normalA = new THREE.Vector3(this.intersectPoint.normal.x, 0, this.intersectPoint.normal.z)  // Invert 
+					const offsetQuarternion = new THREE.Quaternion().setFromUnitVectors(forward, normalA);
+
+					// Step 3: Apply the quaternion to the object
+					offset.applyQuaternion(offsetQuarternion);
+						
+					// add to center
+					center.add(offset);
+				}
+
+				if ( this.buildConfiguration.align === 'base' ) {
+					center.add(new THREE.Vector3(
+						0,
+						this.buildConfiguration.size.y/2 * ( this.intersectPoint.normal.y > -0.5 ? 1 : -1 ),
+						0
+					))
+				}
+
+				//make build wireframe reflect build rotation
+				this.buildWireframe.quaternion.copy(baseQuaternion);
+			}
+
+			// move build wireframe to actuall build spot
+			// this.buildWireframe.scale.copy( new THREE.Vector3(1,1,1).multiplyScalar(this.buildConfiguration.constructive ? 1.2 : 1.0) )
+			this.buildWireframe.position.copy( center )
 
 			if (this.buildConfiguration.instanceModel) {
 				//update instance model placement
 				this.buildInstanceModel.position.copy(center);
 	
-				app.terrainController.addInstance( center, extents, this.buildConfiguration, !isPlacing );
+				app.terrainController.addInstance( center, voxelExtents, this.buildConfiguration, !isPlacing );
 			} else {
-				//tell chunk to change the terrain
-				app.terrainController.adjust( center, extents, this.buildConfiguration, !isPlacing );
+				// tell chunk to change the terrain
+				app.terrainController.adjust( center, voxelExtents, this.buildConfiguration, !isPlacing );
+				if (isPlacing) app.terrainController.adjust( center, voxelExtents, this.buildConfiguration, !isPlacing );
 				app.terrainController.updateInstancedObjects();
 			}
 			this.buildCenterPrevious = center;

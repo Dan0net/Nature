@@ -123,6 +123,8 @@ function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices, lightI
 
 
 			lightFill3D();
+		} else {
+			lightIndices.fill(1.0);
 		}
 
 		const getMaterialLightValue = (v) => {

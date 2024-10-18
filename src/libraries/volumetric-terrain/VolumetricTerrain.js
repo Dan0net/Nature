@@ -38,13 +38,14 @@ export default class VolumetricTerrain extends THREE.Object3D {
 
 		this.debugGeom = new THREE.BoxGeometry(1,1,1);
 
-		this.debugWireframeMaterial = new THREE.LineBasicMaterial( { 
-			color: 0xffff00
-		 } );
+		this.debugMesh = new THREE.Mesh(
+			this.debugGeom,
+			new THREE.MeshBasicMaterial(0xff0000)
+		);
 
-		this.debugWireframe = new THREE.LineSegments( 
-			this.debugGeom, 
-			this.debugWireframeMaterial 
+		this.debugWireframe = new THREE.BoxHelper( 
+			this.debugMesh, 
+			0xffff00
 		);
 		this.add(this.debugWireframe)
 
@@ -486,8 +487,11 @@ export default class VolumetricTerrain extends THREE.Object3D {
 
 		const extraMargin = 3;
 
-		this.debugWireframe.position.copy(center);
-		this.debugWireframe.scale.copy(extents);
+		const extentsRound = extents.clone().ceil().addScalar(1.0)
+		
+		this.debugMesh.position.copy(center);
+		this.debugMesh.scale.copy(extentsRound);
+		this.debugWireframe.update();
 
 		// for (var i = -2; i <=2; i++){
 		// 	for (var j = -2; j <=2; j++){
@@ -510,12 +514,12 @@ export default class VolumetricTerrain extends THREE.Object3D {
 				Math.abs(coordDiff.x) <= 1 &&
 				Math.abs(coordDiff.y) <= 1 &&
 				Math.abs(coordDiff.z) <= 1 &&
-				( ( coordDiff.x > 0 ? this.gridSize.x : 0 ) + ( chunkCenter.x * -coordDiff.x ) - extents.x - extraMargin <= 0 ) &&
-				( ( coordDiff.y > 0 ? this.gridSize.y : 0 ) + ( chunkCenter.y * -coordDiff.y ) - extents.y - extraMargin <= 0 ) &&
-				( ( coordDiff.z > 0 ? this.gridSize.z : 0 ) + ( chunkCenter.z * -coordDiff.z ) - extents.z - extraMargin <= 0 )
+				( ( coordDiff.x > 0 ? this.gridSize.x : 0 ) + ( chunkCenter.x * -coordDiff.x ) - extentsRound.x - extraMargin <= 0 ) &&
+				( ( coordDiff.y > 0 ? this.gridSize.y : 0 ) + ( chunkCenter.y * -coordDiff.y ) - extentsRound.y - extraMargin <= 0 ) &&
+				( ( coordDiff.z > 0 ? this.gridSize.z : 0 ) + ( chunkCenter.z * -coordDiff.z ) - extentsRound.z - extraMargin <= 0 )
 				) {
 				if ( true ) {
-					chunk.adjust( center, extents, buildConfiguration, isTemporary );
+					chunk.adjust( center, extentsRound, buildConfiguration, isTemporary );
 				}
 			} else if ( chunk.useTemporaryGrid ) {
 				// console.log(chunk.chunkKey, 'flip off')

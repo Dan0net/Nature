@@ -46,7 +46,8 @@ export default class Chunk extends VolumetricChunk {
 					adjustedIndices: this.useTemporaryGrid ? this.adjustedIndicesTemp : this.adjustedIndices,
 					lightIncidents: this.lightIncidents,
 					lightIndices: this.lightIndices,
-					regenerateLights: this.lightNeedsUpdating,
+					// regenerateLights: this.lightNeedsUpdating,
+					regenerateLights: false,
 					generateSun: this.generateSun,
 				},
 				async ( { data } ) => {

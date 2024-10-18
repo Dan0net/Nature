@@ -478,20 +478,32 @@ const terrainMaterial= (envmap) => {
                 
                 }
 
-                vec3 getTriTextureBasic(sampler2D tex){
+                vec4 getTriTextureBasic(sampler2DArray tex){
                     vec3 pos = getPos();
                                         
                     vec3 blending = getTriPlanarBlend( vNormal2 );
 
                     if (blending.x >= blending.y && blending.x >= blending.z) {
-                        return texture( tex, vec2(pos.zy * repeatScale ) ).rgb;
+                        return vec4(
+                            texture( tex, vec3(pos.zy * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
+                            texture( tex, vec3(pos.zy * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
+                            texture( tex, vec3(pos.zy * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z
+                        , 1.0);
                     } else if (blending.y >= blending.x && blending.y >= blending.z) {
-                        return texture( tex, vec2(pos.xz * repeatScale ) ).rgb;
+                        return vec4(
+                            texture( tex, vec3(pos.xz * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
+                            texture( tex, vec3(pos.xz * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
+                            texture( tex, vec3(pos.xz * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z
+                        , 1.0);
                     }
-                    return texture( tex, vec2(pos.xy * repeatScale ) ).rgb;
+                    return vec4(
+                        texture( tex, vec3(pos.xy * repeatScale, int(vAdjusted.x)) ).rgb * vBary.x +
+                        texture( tex, vec3(pos.xy * repeatScale, int(vAdjusted.y)) ).rgb * vBary.y +
+                        texture( tex, vec3(pos.xy * repeatScale, int(vAdjusted.z)) ).rgb * vBary.z
+                    , 1.0);
                 }
 
-                vec3 getTriTextureBlend(sampler2D tex){
+                vec4 getTriTextureBlend(sampler2D tex){
                     vec3 pos = getPos();
                                         
                     vec3 blending = getTriPlanarBlend( vNormal2 );
@@ -506,7 +518,7 @@ const terrainMaterial= (envmap) => {
                         texture( tex, vec2(pos.xz * repeatScale ) ).rgb;
                     
 
-                    return vec3( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z );
+                    return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z, 1.0 );
                 
                 }
                 `
@@ -517,7 +529,7 @@ const terrainMaterial= (envmap) => {
         shader.fragmentShader = shader.fragmentShader.replace(
             'vec4 diffuseColor = vec4( diffuse, opacity );',
             `
-            vec4 diffuseColor =  vec4( getTriPlanarTexture(mapArray).rgb, opacity );
+            vec4 diffuseColor =  vec4( getTriTextureBasic(mapArray).rgb, opacity );
             // vec4 diffuseColor =  vec4(.5,.5,.5, 1.0);
             `
         );
@@ -525,7 +537,7 @@ const terrainMaterial= (envmap) => {
         shader.fragmentShader = shader.fragmentShader.replace(
             '#include <normal_fragment_maps>',
             `
-                vec3 texelNormal = normalize(getTriPlanarTexture( normalArray ).xyz) * 2.0 - 1.0;
+                vec3 texelNormal = normalize(getTriTextureBasic( normalArray ).xyz) * 2.0 - 1.0;
                 texelNormal.xy *= normalScale;
 
                 vec3 q0 = dFdx( - vViewPosition.xyz );
@@ -560,7 +572,7 @@ const terrainMaterial= (envmap) => {
             #ifdef USE_AOMAP
 
                 // reads channel R, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
-                float ambientOcclusion = ( getTriPlanarTexture( aoArray ).r - 1.0 ) * aoMapIntensity + 1.0;
+                float ambientOcclusion = ( getTriTextureBasic( aoArray ).r - 1.0 ) * aoMapIntensity + 1.0;
 
                 reflectedLight.indirectDiffuse *= ambientOcclusion;
 
@@ -591,7 +603,7 @@ const terrainMaterial= (envmap) => {
 
             #ifdef USE_ROUGHNESSMAP
 
-                vec3 texelRoughness = getTriPlanarTexture( roughnessArray ).rgb;
+                vec3 texelRoughness = getTriTextureBasic( roughnessArray ).rgb;
 
                 // reads channel G, compatible with a combined OcclusionRoughnessMetallic (RGB) texture
                 roughnessFactor *= texelRoughness.g;
