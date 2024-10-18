@@ -767,6 +767,7 @@ export default class Player extends THREE.Object3D {
 		let center;
 		if ( this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
 			center = this.intersectPoint.point.clone()
+			
 			this.buildMarker.visible = true;
 			this.buildMarker.position.copy( this.intersectPoint.point );
 			this.buildMarker.lookAt( center.clone().add(this.intersectPoint.normal) );
@@ -777,11 +778,11 @@ export default class Player extends THREE.Object3D {
 			this.camera.getWorldPosition( p )
 			v.multiplyScalar( this.maxBuildDistance );
 
-			center = new THREE.Vector3(9,10,-10);
 			center = p.add(v);
 			
 			this.buildMarker.visible = false;
 		}
+		this.buildWireframe.position.copy( center )
 
 		if (   !this.buildCenterPrevious 
 			|| this.buildConfiguration.needsUpdating
@@ -791,7 +792,15 @@ export default class Player extends THREE.Object3D {
 			this.buildWireframe.scale.set(1,1,1);
 
 			// apply build rotation
-			const baseQuaternion = new THREE.Quaternion().setFromEuler(this.buildConfiguration.rotation);
+			// Step 1: Create a quaternion for the Y-axis rotation (world space)
+			const yAxisQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.buildConfiguration.rotation.y + Math.PI);
+
+			// Step 2: Create a quaternion for the X-axis rotation (local space)
+			const xAxisQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.buildConfiguration.rotation.x);
+
+			// Step 3: Combine the quaternions (apply world Y-axis first, then local X-axis)
+			const baseQuaternion = new THREE.Quaternion().multiplyQuaternions(yAxisQuaternion, xAxisQuaternion);
+			// const baseQuaternion = new THREE.Quaternion().setFromEuler(this.buildConfiguration.rotation);
 			this.buildWireframe.quaternion.copy(baseQuaternion);
 			
 			// calc bbox for voxel range
@@ -806,8 +815,8 @@ export default class Player extends THREE.Object3D {
 
 			// if we touch terrain and need to fancy project the build obj
 			if ( this.intersectPoint && this.buildConfiguration.align === 'base' ){
-				// rotate build mesh by build rotation and inverse to normal
-				const inverseNormal = new THREE.Vector3(-this.intersectPoint.normal.x, 0, -this.intersectPoint.normal.z)
+				// inverse rotate build mesh by build rotation and intersect normal
+				const inverseNormal = new THREE.Vector3(-this.intersectPoint.normal.x, 0, -this.intersectPoint.normal.z).normalize()
 				const forward = new THREE.Vector3(0, 0, 1);
 				const normalQuaternion = new THREE.Quaternion().setFromUnitVectors(forward, inverseNormal);
 				const tempQuaternion = new THREE.Quaternion().multiplyQuaternions(baseQuaternion.clone().invert(), normalQuaternion);
@@ -821,27 +830,30 @@ export default class Player extends THREE.Object3D {
 					bbox.max.y - bbox.min.y,
 					bbox.max.z - bbox.min.z,
 				)
-				
-				if ( this.intersectPoint.normal.y < 0.9) {
-					const offset = new THREE.Vector3(
+
+				let offset;
+				let normalA = new THREE.Vector3();
+
+				if ( this.intersectPoint.normal.y < 0.25) {
+					offset = new THREE.Vector3(
 						0,0,extents.z/2
 					);
+					
+					normalA = new THREE.Vector3(this.intersectPoint.normal.x, 0, this.intersectPoint.normal.z).normalize()
 
-					// rotate offset by normal
-					const normalA = new THREE.Vector3(this.intersectPoint.normal.x, 0, this.intersectPoint.normal.z)  // Invert 
 					const offsetQuarternion = new THREE.Quaternion().setFromUnitVectors(forward, normalA);
-
-					// Step 3: Apply the quaternion to the object
 					offset.applyQuaternion(offsetQuarternion);
+				
 						
 					// add to center
 					center.add(offset);
 				}
 
+				// finally, move up to base level
 				if ( this.buildConfiguration.align === 'base' ) {
 					center.add(new THREE.Vector3(
 						0,
-						this.buildConfiguration.size.y/2 * ( this.intersectPoint.normal.y > -0.5 ? 1 : -1 ),
+						voxelExtents.y / 2,
 						0
 					))
 				}

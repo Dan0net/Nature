@@ -26,6 +26,17 @@ export default [
         wireframeGeometry: new THREE.BoxGeometry( 4,4,.1 ),
     },
     {
+        name: 'slope',
+        shape: 'cube',
+        constructive: true,
+        size: new THREE.Vector3(4,4,.1),
+        material: 4,
+        align: 'base',
+        rotation: new THREE.Euler(Math.PI / 3, 0 ,0, 'XYZ'),
+        gridSnap: false,
+        wireframeGeometry: new THREE.BoxGeometry( 4,4,.1 ),
+    },
+    {
         name: 'blob carve',
         shape: 'sphere',
         constructive: false,

@@ -461,10 +461,12 @@ export default class VolumetricChunk {
 		// const oldValueScale = map( abs( this.grid[ gridOffset ] ), 0, 0.5, 0.001, 3 );
 		const g = this.useTemporaryGrid ? this.gridTemp : this.grid;
 		// return this.gridTemp[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
-		const v = val + this.grid[ gridOffset ]
-		// return g[ gridOffset ] = v > 0 ? Math.nan : v;
-		// return g[ gridOffset ] = Math.max(val, this.grid[ gridOffset ]);
-		// return g[ gridOffset ] = v;
+		
+		// val = constrain( val, - 0.5, 0.5 );
+		// const v = val > 0 ? Math.max(val, this.grid[ gridOffset ]) : Math.min(val, this.grid[ gridOffset ]);
+		
+		const v = val + g[ gridOffset ];
+
 		return g[ gridOffset ] = constrain( v, - 0.5, 0.5 );
 		// return g[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
 
