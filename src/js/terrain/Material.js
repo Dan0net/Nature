@@ -319,7 +319,6 @@ const terrainMaterial= (envmap) => {
                 // return pow(blending, vec3(4.0, 4.0, 4.0));
             }
 
-<<<<<<< HEAD
             vec3 getPos() {
                 float pixelSize = 1.0 / 32.0;
                 // return floor(vPos / pixelSize) * pixelSize;
@@ -337,33 +336,8 @@ const terrainMaterial= (envmap) => {
 
                 vec3 yaxis = 
                     texture( tex, vec2(pos.xz * repeatScale ) ).rgb;
-=======
-            vec4 getTriPlanarTexture(){
-                                    
-                //mesh scaled
-                float rockRepeat = 0.025;
-                float grassRepeat = 0.025;
-                float dirtRepeat = 0.025;
-
-                vec3 blending = getTriPlanarBlend( vNormal2 );
-                
-                vec3 xaxis = mix(
-                        
-                        texture2D( tDiff[0], (vPos.yz * rockRepeat) ).rgb,
-                        texture2D( tDiff[2], (vPos.yz * dirtRepeat) ).rgb,
-                        vAdjusted
-                    );
-
-                vec3 zaxis = mix(
-                        
-                        texture2D( tDiff[0], (vPos.xy * rockRepeat) ).rgb,
-                        texture2D( tDiff[2], (vPos.xy * dirtRepeat) ).rgb,
-                        vAdjusted
-                    );
->>>>>>> ab0e8ae90bc9b760278b6705e6b885c5d1ca83df
                 
 
-<<<<<<< HEAD
                 return vec3( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z );
             
             }
@@ -438,29 +412,11 @@ const terrainMaterial= (envmap) => {
                         texture( tex, vec3(pos * repeatScale, int(vAdjusted.x)) ).rgb * bary.x +
                         texture( tex, vec3(pos * repeatScale, int(vAdjusted.y)) ).rgb * bary.y +
                         texture( tex, vec3(pos * repeatScale, int(vAdjusted.z)) ).rgb * bary.z
-=======
-                    yaxis = texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb;
-
-                } else {
-                        
-                    vec3 yaxis1 = mix(
-                        texture2D( tDiff[1], (vPos.xz * grassRepeat) ).rgb,
-                        texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb,
-                        vForceStone
->>>>>>> ab0e8ae90bc9b760278b6705e6b885c5d1ca83df
                     );
                 }
 
-<<<<<<< HEAD
                 vec4 getTriPlanarSmoothBlend(sampler2DArray tex) {
                     vec3 pos = getPos();
-=======
-                    vec3 yaxis2 = mix(
-                        texture2D( tDiff[2], (vPos.xz * dirtRepeat) ).rgb,
-                        texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb,
-                        vForceStone
-                    );
->>>>>>> ab0e8ae90bc9b760278b6705e6b885c5d1ca83df
 
                     vec3 blending = getTriPlanarBlend( vNormal2 );
 
