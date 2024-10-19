@@ -101,13 +101,13 @@ export default class App {
 	startLoading( offset, viewDistance, saveProgress ) {
 
 		// const loader = new THREE.CubeTextureLoader();
-		// loader.setPath( 'resources/images/skybox/' );
+		// loader.setPath( '/images/skybox/' );
 		// const textureCube = loader.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
 		// this.scene.background = textureCube;
 		const loader = new THREE.TextureLoader();
 		const skyBoxTexture = loader.load(
-			// 'resources/images/NightSkyHDRI008_2K-TONEMAPPED.jpg',
-			'resources/images/EveningSkyHDRI017B_2K-TONEMAPPED.jpg',
+			// '/images/NightSkyHDRI008_2K-TONEMAPPED.jpg',
+			'/images/EveningSkyHDRI017B_2K-TONEMAPPED.jpg',
 			() => {
 			skyBoxTexture.mapping = THREE.EquirectangularReflectionMapping;
 			skyBoxTexture.colorSpace = THREE.SRGBColorSpace;

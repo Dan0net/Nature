@@ -216,39 +216,39 @@ function loadGZTexture() {
 let mapArray, normalArray, aoArray, roughnessArray;
 
 const mapArrayPromise = loadTextureArray([
-    './resources/images/terrain/Rock028_1K-PNG_Color.png',
-    './resources/images/terrain/Grass001_1K-PNG_Color.png',
-    './resources/images/terrain/Ground051_1K-PNG_Color.png',
-    './resources/images/terrain/TH_Old_Bark_Brown_baseColor.png',
-    './resources/images/terrain/TH_Castle_Brick_Broken_baseColor.png',
-    './resources/images/terrain/Ground080_1K-PNG_Color.png',
+    '/images/terrain/Rock028_1K-PNG_Color.png',
+    '/images/terrain/Grass001_1K-PNG_Color.png',
+    '/images/terrain/Ground051_1K-PNG_Color.png',
+    '/images/terrain/TH_Old_Bark_Brown_baseColor.png',
+    '/images/terrain/TH_Castle_Brick_Broken_baseColor.png',
+    '/images/terrain/Ground080_1K-PNG_Color.png',
 ]);
 
 const normalMapArrayPromise = loadTextureArray([
-    './resources/images/terrain/Rock028_1K-PNG_NormalGL.png',
-    './resources/images/terrain/Grass001_1K-PNG_NormalGL.png',
-    './resources/images/terrain/Ground051_1K-PNG_NormalGL.png',
-    './resources/images/terrain/TH_Old_Bark_Brown_normal.png',
-    './resources/images/terrain/TH_Castle_Brick_Broken_normal.png',
-    './resources/images/terrain/Ground080_1K-PNG_NormalGL.png',
+    '/images/terrain/Rock028_1K-PNG_NormalGL.png',
+    '/images/terrain/Grass001_1K-PNG_NormalGL.png',
+    '/images/terrain/Ground051_1K-PNG_NormalGL.png',
+    '/images/terrain/TH_Old_Bark_Brown_normal.png',
+    '/images/terrain/TH_Castle_Brick_Broken_normal.png',
+    '/images/terrain/Ground080_1K-PNG_NormalGL.png',
 ]);
 
 const aoMapArrayPromise = loadTextureArray([
-    './resources/images/terrain/Rock028_1K-PNG_AmbientOcclusion.png',
-    './resources/images/terrain/Grass001_1K-PNG_AmbientOcclusion.png',
-    './resources/images/terrain/Ground051_1K-PNG_AmbientOcclusion.png',
-    './resources/images/terrain/white.png',
-    './resources/images/terrain/white.png',
-    './resources/images/terrain/Ground080_1K-PNG_AmbientOcclusion.png',
+    '/images/terrain/Rock028_1K-PNG_AmbientOcclusion.png',
+    '/images/terrain/Grass001_1K-PNG_AmbientOcclusion.png',
+    '/images/terrain/Ground051_1K-PNG_AmbientOcclusion.png',
+    '/images/terrain/white.png',
+    '/images/terrain/white.png',
+    '/images/terrain/Ground080_1K-PNG_AmbientOcclusion.png',
 ]);
 
 const roughnessMapArrayPromise = loadTextureArray([
-    './resources/images/terrain/Rock028_1K-PNG_Roughness.png',
-    './resources/images/terrain/Grass001_1K-PNG_Roughness.png',
-    './resources/images/terrain/Ground051_1K-PNG_Roughness.png',
-    './resources/images/terrain/TH_Old_Bark_Brown_roughness.png',
-    './resources/images/terrain/TH_Castle_Brick_Broken_roughness.png',
-    './resources/images/terrain/Ground080_1K-PNG_Roughness.png',
+    '/images/terrain/Rock028_1K-PNG_Roughness.png',
+    '/images/terrain/Grass001_1K-PNG_Roughness.png',
+    '/images/terrain/Ground051_1K-PNG_Roughness.png',
+    '/images/terrain/TH_Old_Bark_Brown_roughness.png',
+    '/images/terrain/TH_Castle_Brick_Broken_roughness.png',
+    '/images/terrain/Ground080_1K-PNG_Roughness.png',
 ]);
 
 Promise.all([mapArrayPromise, normalMapArrayPromise, aoMapArrayPromise, roughnessMapArrayPromise])

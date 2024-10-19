@@ -17,7 +17,7 @@ const preloadModels = () => {
 
 		};
 
-		gltfLoader.load( './resources/models/knight/knight.gltf', ( model ) => {
+		gltfLoader.load( '/models/knight/knight.gltf', ( model ) => {
 
 			modelBank.knight = model.scene.children[ 0 ];
 			modelBank.knight.animations = model.animations;
@@ -25,28 +25,28 @@ const preloadModels = () => {
 
 		} );
 
-		gltfLoader.load( './resources/models/pedestal/Pedestal.gltf', ( model ) => {
+		gltfLoader.load( '/models/pedestal/Pedestal.gltf', ( model ) => {
 
 			modelBank.pedestal = model.scene.children[ 0 ];
 			check();
 
 		} );
 
-		gltfLoader.load( './resources/models/berrybush/BerryBush.gltf', model => {
+		gltfLoader.load( '/models/berrybush/BerryBush.gltf', model => {
 
 			modelBank.bush = model.scene;
 			check();
 
 		} );
 
-		ObjectLoader.load( './resources/models/boulders/boulders.json', model => {
+		ObjectLoader.load( '/models/boulders/boulders.json', model => {
 
 			modelBank.boulder = model;
 			check();
 
 		} );
 
-		ObjectLoader.load( './resources/models/trees/tree.json', model => {
+		ObjectLoader.load( '/models/trees/tree.json', model => {
 
 			model.geometry.scale( 11, 11, 11 );
 		    model.geometry.translate( 0, - 0.1, 0 );
@@ -55,7 +55,7 @@ const preloadModels = () => {
 
 		} );
 
-		ObjectLoader.load( './resources/models/trees/tree1.json', model => {
+		ObjectLoader.load( '/models/trees/tree1.json', model => {
 
 			model.geometry.scale( 9, 9, 9 );
 		    model.geometry.translate( 0, - 0.1, 0 );
@@ -64,7 +64,7 @@ const preloadModels = () => {
 
 		} );
 
-		ObjectLoader.load( './resources/models/trees/treeHigh.json', model => {
+		ObjectLoader.load( '/models/trees/treeHigh.json', model => {
 
 			modelBank.treeHigh = model;
 			check();
@@ -72,14 +72,14 @@ const preloadModels = () => {
 		} );
 
 
-		ObjectLoader.load( './resources/models/trees/treeHigh1.json', model => {
+		ObjectLoader.load( '/models/trees/treeHigh1.json', model => {
 
 			modelBank.treeHigh1 = model;
 			check();
 
 		} );
 
-		ObjectLoader.load( './resources/models/grass/grass.json', model => {
+		ObjectLoader.load( '/models/grass/grass.json', model => {
 
 			modelBank.grass = model;
 			check();
@@ -87,14 +87,14 @@ const preloadModels = () => {
 		} );
 
 
-		ObjectLoader.load( './resources/models/grass/grassHigh.json', model => {
+		ObjectLoader.load( '/models/grass/grassHigh.json', model => {
 
 			modelBank.grassHigh = model;
 			check();
 
 		} );
 
-		ObjectLoader.load( './resources/models/fern/fern.json', model => {
+		ObjectLoader.load( '/models/fern/fern.json', model => {
 
 			modelBank.fern = model;
 			check();
