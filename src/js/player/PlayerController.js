@@ -811,10 +811,21 @@ export default class Player extends THREE.Object3D {
 			const baseQuaternion = new THREE.Quaternion().multiplyQuaternions(yAxisQuaternion, xAxisQuaternion);
 			// const baseQuaternion = new THREE.Quaternion().setFromEuler(this.buildConfiguration.rotation);
 			this.buildWireframe.quaternion.copy(baseQuaternion);
-			
+
+			this.buildWireframe.quaternion.copy(xAxisQuaternion);
 			// calc bbox for voxel range
 			this.buildWireframe.geometry.computeBoundingBox();
 			const bbox = new THREE.Box3();
+			bbox.setFromObject(this.buildWireframe);
+			const baseExtents = new THREE.Vector3(
+				bbox.max.x - bbox.min.x,
+				bbox.max.y - bbox.min.y,
+				bbox.max.z - bbox.min.z,
+			)
+			
+			// calc bbox for voxel range
+			this.buildWireframe.geometry.computeBoundingBox();
+			// const bbox = new THREE.Box3();
 			bbox.setFromObject(this.buildWireframe);
 			const voxelExtents = new THREE.Vector3(
 				bbox.max.x - bbox.min.x,
@@ -840,21 +851,25 @@ export default class Player extends THREE.Object3D {
 					bbox.max.z - bbox.min.z,
 				)
 
-				let offset;
-				let normalA = new THREE.Vector3();
-
 				if ( this.intersectPoint.normal.y < 0.25) {
-					offset = new THREE.Vector3(
+					// if it's not a flat surface, project towards
+					const offset = new THREE.Vector3(
 						0,0,extents.z/2
 					);
 					
-					normalA = new THREE.Vector3(this.intersectPoint.normal.x, 0, this.intersectPoint.normal.z).normalize()
+					const normalA = new THREE.Vector3(this.intersectPoint.normal.x, 0, this.intersectPoint.normal.z).normalize()
 
 					const offsetQuarternion = new THREE.Quaternion().setFromUnitVectors(forward, normalA);
 					offset.applyQuaternion(offsetQuarternion);
-				
 						
 					// add to center
+					center.add(offset);
+				} else {
+					// if it's a flat surface project away from player
+					const offset = new THREE.Vector3(
+						0,0,baseExtents.z/2
+					);
+					offset.applyQuaternion(yAxisQuaternion);
 					center.add(offset);
 				}
 
