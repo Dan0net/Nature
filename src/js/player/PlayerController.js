@@ -2,6 +2,7 @@ import BuildMarker from './BuildMarker';
 import { modelBank } from '../modelloader/ModelLoader';
 import * as THREE from 'three';
 import BuildPresets from './BuildPresets';
+import BuildSnapMarker from './BuildSnapMarker';
 
 const _PI_2 = Math.PI / 2;
 
@@ -86,6 +87,9 @@ export default class Player extends THREE.Object3D {
 		this.maxBuildMaterials = 6;
 		this.buildCenterPrevious;
 		this.buildInstanceModel;
+
+		this.buildSnapMarker;
+		this.buildSnapPoints = [];
 	}
 
 	eat() {
@@ -739,6 +743,11 @@ export default class Player extends THREE.Object3D {
 			this.buildWireframeMaterial.color.set(this.buildConfiguration.constructive ? 0x00FF00 : 0xFF0000);
 			this.buildWireframeMaterial.needsUpdate = true;
 		}
+
+		if (this.buildSnapMarker) app.scene.remove(this.buildSnapMarker);
+		this.buildSnapMarker = new BuildSnapMarker(this.buildConfiguration.snaps);
+		app.scene.add(this.buildSnapMarker);
+
 		// console.log(this.buildInstanceModel);
 
 		this.buildConfiguration.needsUpdating = true;
@@ -866,6 +875,31 @@ export default class Player extends THREE.Object3D {
 			// this.buildWireframe.scale.copy( new THREE.Vector3(1,1,1).multiplyScalar(this.buildConfiguration.constructive ? 1.2 : 1.0) )
 			this.buildWireframe.position.copy( center )
 
+			this.buildSnapMarker.quaternion.copy(baseQuaternion);
+			this.buildSnapMarker.position.copy( center )
+
+			const snapPoints = this.buildSnapMarker.getMarkerWorldPositions();
+			let minSnapDistance = 0.75;
+			let snapDelta;
+			// TODO use partitioning or mathjs matrix ops
+			for (const snapPoint of snapPoints) {
+				for (const buildSnapPoint of this.buildSnapPoints) {
+					const d = snapPoint.distanceTo(buildSnapPoint);
+					// console.log(snapPoint, buildSnapPoint)
+					console.log(d)
+					if (d < minSnapDistance) {
+						minSnapDistance = d;
+						snapDelta = snapPoint.sub(buildSnapPoint);
+					}
+				}
+			}
+
+			if (snapDelta) {
+				center.sub(snapDelta);
+				this.buildWireframe.position.copy( center )
+				this.buildSnapMarker.position.copy( center )
+			}
+
 			if (this.buildConfiguration.instanceModel) {
 				//update instance model placement
 				this.buildInstanceModel.position.copy(center);
@@ -874,7 +908,14 @@ export default class Player extends THREE.Object3D {
 			} else {
 				// tell chunk to change the terrain
 				app.terrainController.adjust( center, voxelExtents, this.buildConfiguration, !isPlacing );
-				if (isPlacing) app.terrainController.adjust( center, voxelExtents, this.buildConfiguration, !isPlacing );
+				if (isPlacing) {
+					// app.terrainController.adjust( center, voxelExtents, this.buildConfiguration, !isPlacing );
+					const snapPoints2 = this.buildSnapMarker.getMarkerWorldPositions();
+					this.buildSnapMarker.storeSnaps(snapPoints2);
+					this.buildSnapPoints = [...snapPoints2, ...this.buildSnapPoints];
+					console.log(this.buildSnapPoints)
+				}
+				
 				app.terrainController.updateInstancedObjects();
 			}
 			this.buildCenterPrevious = center;

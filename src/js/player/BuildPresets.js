@@ -13,6 +13,7 @@ export default [
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
         wireframeGeometry: new THREE.BoxGeometry( 1,1,1 ),
+        snaps: [[0,0,0]],
     },
     {
         name: 'wall',
@@ -24,6 +25,7 @@ export default [
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
         wireframeGeometry: new THREE.BoxGeometry( 4,4,.1 ),
+        snaps: [[2,2,0],[2,-2,0],[-2,-2,0],[-2,2,0]],
     },
     {
         name: 'slope',
@@ -35,6 +37,7 @@ export default [
         rotation: new THREE.Euler(Math.PI / 3, 0 ,0, 'XYZ'),
         gridSnap: false,
         wireframeGeometry: new THREE.BoxGeometry( 4,4,.1 ),
+        snaps: [[2,2,0],[2,-2,0],[-2,-2,0],[-2,2,0]],
     },
     {
         name: 'blob carve',
@@ -45,7 +48,8 @@ export default [
         align: 'center',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.SphereGeometry(2, 4, 4)
+        wireframeGeometry: new THREE.SphereGeometry(2, 4, 4),
+        snaps: [[0,0,0]],
     },
     {
         name: 'blob',
@@ -56,7 +60,8 @@ export default [
         align: 'center',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.SphereGeometry(2, 4, 4)
+        wireframeGeometry: new THREE.SphereGeometry(2, 4, 4),
+        snaps: [[0,0,0]],
     },
     {
         name: 'floor',
@@ -67,7 +72,8 @@ export default [
         align: 'base',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.BoxGeometry( 4, 0.5, 4 )
+        wireframeGeometry: new THREE.BoxGeometry( 4, 0.5, 4 ),
+        snaps: [[2,0,2],[2,0,-2],[-2,0,-2],[-2,0,2]],
     },
     {
         name: 'square window',
@@ -78,7 +84,8 @@ export default [
         align: 'center',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.BoxGeometry(1, 1, 4)
+        wireframeGeometry: new THREE.BoxGeometry(1, 1, 4),
+        snaps: [[0,0,0]],
     },
     {
         name: 'round window',
@@ -89,7 +96,8 @@ export default [
         align: 'center',
         rotation: new THREE.Euler(Math.PI/2,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.CylinderGeometry(0.5, 0.5, 4, 8, 4)
+        wireframeGeometry: new THREE.CylinderGeometry(0.5, 0.5, 4, 8, 4),
+        snaps: [[0,0,0]],
     },
     {
         name: 'block',
@@ -100,7 +108,8 @@ export default [
         align: 'base',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.BoxGeometry(2, 2, 2)
+        wireframeGeometry: new THREE.BoxGeometry(2, 2, 2),
+        snaps: [[1,1,1],[1,1,-1],[-1,1,-1],[-1,1,1], [1,-1,1],[1,-1,-1],[-1,-1,-1],[-1,-1,1]],
     },
     {
         name: 'big cylinder',
@@ -111,7 +120,8 @@ export default [
         align: 'base',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.CylinderGeometry(4, 4, 8, 8, 4)
+        wireframeGeometry: new THREE.CylinderGeometry(4, 4, 8, 8, 4),
+        snaps: [[0,4,0], [0,-4,0]],
     },
     {
         name: 'small cylinder',
@@ -122,6 +132,7 @@ export default [
         align: 'base',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),
         gridSnap: false,
-        wireframeGeometry: new THREE.CylinderGeometry(0.5, 0.5, 4, 8, 4)
+        wireframeGeometry: new THREE.CylinderGeometry(0.5, 0.5, 4, 8, 4),
+        snaps: [[0,2,0], [0,-2,0]],
     }
 ]
