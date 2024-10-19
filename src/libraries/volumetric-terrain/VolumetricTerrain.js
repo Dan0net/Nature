@@ -109,7 +109,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 
 			let num_initial_chunks = 0;
 			let LOAD_INITIAL_TERRAIN = async ( chunk ) => {
-
+				
 				this.chunks[ chunk.chunkKey ] = chunk;
 				num_initial_chunks --;
 

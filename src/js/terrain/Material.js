@@ -459,6 +459,14 @@ const terrainMaterial= (envmap) => {
                     return normalize(t * t * (3.0 - 2.0 * t));
                 }
 
+                vec3 getTriAxisSmoothBlend(sampler2DArray tex, vec2 pos, vec3 bary){
+                    return vec3(
+                        texture( tex, vec3(pos * repeatScale, int(vAdjusted.x)) ).rgb * bary.x +
+                        texture( tex, vec3(pos * repeatScale, int(vAdjusted.y)) ).rgb * bary.y +
+                        texture( tex, vec3(pos * repeatScale, int(vAdjusted.z)) ).rgb * bary.z
+                    );
+                }
+
                 vec4 getTriPlanarSmoothBlend(sampler2DArray tex) {
                     vec3 pos = getPos();
 
@@ -467,20 +475,11 @@ const terrainMaterial= (envmap) => {
                     // vec3 smoothBary = getSmoothBary();
                     vec3 smoothBary = vBary;
                     
-                    vec3 xaxis = 
-                        texture( tex, vec3(pos.zy * repeatScale, int(vAdjusted.x)) ).rgb * smoothBary.x +
-                        texture( tex, vec3(pos.zy * repeatScale, int(vAdjusted.y)) ).rgb * smoothBary.y +
-                        texture( tex, vec3(pos.zy * repeatScale, int(vAdjusted.z)) ).rgb * smoothBary.z;
+                    vec3 xaxis = getTriAxisSmoothBlend(tex, pos.zy, smoothBary);
 
-                    vec3 zaxis = 
-                        texture( tex, vec3(pos.xy * repeatScale, int(vAdjusted.x)) ).rgb * smoothBary.x +
-                        texture( tex, vec3(pos.xy * repeatScale, int(vAdjusted.y)) ).rgb * smoothBary.y +
-                        texture( tex, vec3(pos.xy * repeatScale, int(vAdjusted.z)) ).rgb * smoothBary.z;
+                    vec3 zaxis = getTriAxisSmoothBlend(tex, pos.xy, smoothBary);
 
-                    vec3 yaxis = 
-                        texture( tex, vec3(pos.xz * repeatScale, int(vAdjusted.x)) ).rgb * smoothBary.x +
-                        texture( tex, vec3(pos.xz * repeatScale, int(vAdjusted.y)) ).rgb * smoothBary.y +
-                        texture( tex, vec3(pos.xz * repeatScale, int(vAdjusted.z)) ).rgb * smoothBary.z;
+                    vec3 yaxis = getTriAxisSmoothBlend(tex, pos.xz, smoothBary);
 
                     return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z, 1.0 );
                 

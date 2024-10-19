@@ -91,7 +91,7 @@ export default [
         name: 'floor',
         shape: 'cube',
         constructive: true,
-        size: new THREE.Vector3(4, 0.25, 4),
+        size: new THREE.Vector3(4, 0.5, 4),
         material: 2,
         align: 'base',
         rotation: new THREE.Euler(0,0,0, 'XYZ'),

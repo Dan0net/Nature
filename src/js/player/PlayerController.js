@@ -839,7 +839,10 @@ export default class Player extends THREE.Object3D {
 				const inverseNormal = new THREE.Vector3(-this.intersectPoint.normal.x, 0, -this.intersectPoint.normal.z).normalize()
 				const forward = new THREE.Vector3(0, 0, 1);
 				const normalQuaternion = new THREE.Quaternion().setFromUnitVectors(forward, inverseNormal);
-				const tempQuaternion = new THREE.Quaternion().multiplyQuaternions(baseQuaternion.clone().invert(), normalQuaternion);
+				const tempQuaternion = new THREE.Quaternion().multiplyQuaternions(
+					new THREE.Quaternion().multiplyQuaternions(yAxisQuaternion.clone().invert(), xAxisQuaternion), // similar to baseQuaternion, but only y axis rot inverted
+					normalQuaternion
+				);
 				this.buildWireframe.quaternion.copy(tempQuaternion);
 				
 				// get this bbox to figre out offset
