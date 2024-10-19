@@ -379,8 +379,8 @@ export default class VolumetricChunk {
 						
 						p = drawFunc( pos, buildConfiguration )
 						
-						this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p );
-						if (val > 0 && p > 0) {
+						const v = this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p, buildConfiguration.constructive );
+						if (val * p >= -0.5) {
 							this.saveGridPosition( gridPosition, buildConfiguration.material );
 						}
 					}
@@ -399,7 +399,8 @@ export default class VolumetricChunk {
 		let d = pos.length() - buildConfiguration.size.x;
 		
 		// TODO Fix sphere weight
-		return map( d, 0, 1.5, 1, 0, true );
+		// return map( d, 0, 1.5, 1, 0, true );
+		return -d
 	}
 
 	drawCube ( pos, buildConfiguration ) {
@@ -410,11 +411,11 @@ export default class VolumetricChunk {
 		const insideD = Math.min( Math.max(q.x,q.y,q.z), 0.0);
   		const d = outsideD + insideD;
 
-		// console.log(q, outsideD, insideD)
+		// console.log(d)
 
 		// return d < 0 ? Math.inf : 0;
-		// return d;
-		return map( d, 0, 1.5, 1, 0, true );
+		return -d;
+		// return map( d, 0, 1.5, 1, 0, true );
 	}
 
 	drawCylinder ( pos, buildConfiguration ) {
@@ -425,7 +426,7 @@ export default class VolumetricChunk {
 		);
 
   		const a = min(max(d.x,d.y), 0.0) + d.max(new THREE.Vector2(0,0)).length();
-		return map( a, 0, 1.1, 1, 0, true );
+		return -a;
 	}
 
 
@@ -455,17 +456,18 @@ export default class VolumetricChunk {
 
 	}
 
-	addScaleValueToGrid( x, y, z, val ) {
+	addScaleValueToGrid( x, y, z, val, constructive ) {
 
 		let gridOffset = this.gridIndex( x, y, z );
 		// const oldValueScale = map( abs( this.grid[ gridOffset ] ), 0, 0.5, 0.001, 3 );
 		const g = this.useTemporaryGrid ? this.gridTemp : this.grid;
 		// return this.gridTemp[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
 		
-		// val = constrain( val, - 0.5, 0.5 );
-		// const v = val > 0 ? Math.max(val, this.grid[ gridOffset ]) : Math.min(val, this.grid[ gridOffset ]);
+		val = constrain( val, - 0.5, 0.5 );
+		// const v = val;
+		const v = constructive ? Math.max(val, this.grid[ gridOffset ]) : Math.min(val, this.grid[ gridOffset ]);
 		
-		const v = val + g[ gridOffset ];
+		// const v = val + g[ gridOffset ];
 
 		return g[ gridOffset ] = constrain( v, - 0.5, 0.5 );
 		// return g[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
