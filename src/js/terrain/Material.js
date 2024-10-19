@@ -8,58 +8,6 @@ import { gzipSync, decompressSync, gunzip, gunzipSync } from 'fflate';
 //   888   888ooo888  888      888      .oP"888   888   888   888
 //   888 . 888    .o  888      888     d8(  888   888   888   888
 //   "888" `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o
-// let rocktex = new THREE.TextureLoader().load( './resources/images/terrain/rock.jpg' );
-// let grasstex = new THREE.TextureLoader().load( './resources/images/terrain/grass.png' );
-// let dirttex = new THREE.TextureLoader().load( './resources/images/terrain/dirt.png' );
-// let woodtex = new THREE.TextureLoader().load( './resources/images/terrain/wood.png' );
-
-// rocktex.anisotropy = 8;
-// grasstex.anisotropy = 8;
-// dirttex.anisotropy = 8;
-// woodtex.anisotropy = 8;
-
-// rocktex.wrapS = THREE.RepeatWrapping;
-// grasstex.wrapS = THREE.RepeatWrapping;
-// dirttex.wrapS = THREE.RepeatWrapping;
-// woodtex.wrapS = THREE.RepeatWrapping;
-// rocktex.wrapT = THREE.RepeatWrapping;
-// grasstex.wrapT = THREE.RepeatWrapping;
-// dirttex.wrapT = THREE.RepeatWrapping;
-// woodtex.wrapT = THREE.RepeatWrapping;
-
-// rocktex.encoding = THREE.sRGBEncoding;
-// grasstex.encoding = THREE.sRGBEncoding;
-// dirttex.encoding = THREE.sRGBEncoding;
-// woodtex.encoding = THREE.sRGBEncoding;
-
-// grasstex.minFilter = THREE.NearestFilter;
-
-// // create a buffer with color data
-// const width = 512;
-// const height = 512;
-// const depth = 512;
-
-// const size = width * height;
-// const data = new Uint8Array( 4 * size * depth );
-
-// for ( let i = 0; i < depth; i ++ ) {
-// 	const color = new THREE.Color( Math.random(), Math.random(), Math.random() );
-// 	const r = Math.floor( color.r * 255 );
-// 	const g = Math.floor( color.g * 255 );
-// 	const b = Math.floor( color.b * 255 );
-
-// 	for ( let j = 0; j < size; j ++ ) {
-// 		const stride = ( i * size + j ) * 4;
-// 		data[ stride ] = r;
-// 		data[ stride + 1 ] = g;
-// 		data[ stride + 2 ] = b;
-// 		data[ stride + 3 ] = 255;
-// 	}
-// }
-
-// // used the buffer to create a DataArrayTexture
-// const texture = new THREE.DataArrayTexture( data, width, height, depth );
-// texture.needsUpdate = true;
 
 // Define the number of images and size of the texture
 
@@ -371,6 +319,7 @@ const terrainMaterial= (envmap) => {
                 // return pow(blending, vec3(4.0, 4.0, 4.0));
             }
 
+<<<<<<< HEAD
             vec3 getPos() {
                 float pixelSize = 1.0 / 32.0;
                 // return floor(vPos / pixelSize) * pixelSize;
@@ -388,8 +337,33 @@ const terrainMaterial= (envmap) => {
 
                 vec3 yaxis = 
                     texture( tex, vec2(pos.xz * repeatScale ) ).rgb;
+=======
+            vec4 getTriPlanarTexture(){
+                                    
+                //mesh scaled
+                float rockRepeat = 0.025;
+                float grassRepeat = 0.025;
+                float dirtRepeat = 0.025;
+
+                vec3 blending = getTriPlanarBlend( vNormal2 );
+                
+                vec3 xaxis = mix(
+                        
+                        texture2D( tDiff[0], (vPos.yz * rockRepeat) ).rgb,
+                        texture2D( tDiff[2], (vPos.yz * dirtRepeat) ).rgb,
+                        vAdjusted
+                    );
+
+                vec3 zaxis = mix(
+                        
+                        texture2D( tDiff[0], (vPos.xy * rockRepeat) ).rgb,
+                        texture2D( tDiff[2], (vPos.xy * dirtRepeat) ).rgb,
+                        vAdjusted
+                    );
+>>>>>>> ab0e8ae90bc9b760278b6705e6b885c5d1ca83df
                 
 
+<<<<<<< HEAD
                 return vec3( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z );
             
             }
@@ -464,11 +438,29 @@ const terrainMaterial= (envmap) => {
                         texture( tex, vec3(pos * repeatScale, int(vAdjusted.x)) ).rgb * bary.x +
                         texture( tex, vec3(pos * repeatScale, int(vAdjusted.y)) ).rgb * bary.y +
                         texture( tex, vec3(pos * repeatScale, int(vAdjusted.z)) ).rgb * bary.z
+=======
+                    yaxis = texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb;
+
+                } else {
+                        
+                    vec3 yaxis1 = mix(
+                        texture2D( tDiff[1], (vPos.xz * grassRepeat) ).rgb,
+                        texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb,
+                        vForceStone
+>>>>>>> ab0e8ae90bc9b760278b6705e6b885c5d1ca83df
                     );
                 }
 
+<<<<<<< HEAD
                 vec4 getTriPlanarSmoothBlend(sampler2DArray tex) {
                     vec3 pos = getPos();
+=======
+                    vec3 yaxis2 = mix(
+                        texture2D( tDiff[2], (vPos.xz * dirtRepeat) ).rgb,
+                        texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb,
+                        vForceStone
+                    );
+>>>>>>> ab0e8ae90bc9b760278b6705e6b885c5d1ca83df
 
                     vec3 blending = getTriPlanarBlend( vNormal2 );
 
