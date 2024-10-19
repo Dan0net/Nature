@@ -810,7 +810,6 @@ export default class Player extends THREE.Object3D {
 			// Step 3: Combine the quaternions (apply world Y-axis first, then local X-axis)
 			const baseQuaternion = new THREE.Quaternion().multiplyQuaternions(yAxisQuaternion, xAxisQuaternion);
 			// const baseQuaternion = new THREE.Quaternion().setFromEuler(this.buildConfiguration.rotation);
-			this.buildWireframe.quaternion.copy(baseQuaternion);
 
 			this.buildWireframe.quaternion.copy(xAxisQuaternion);
 			// calc bbox for voxel range
@@ -822,7 +821,8 @@ export default class Player extends THREE.Object3D {
 				bbox.max.y - bbox.min.y,
 				bbox.max.z - bbox.min.z,
 			)
-			
+
+			this.buildWireframe.quaternion.copy(baseQuaternion);
 			// calc bbox for voxel range
 			this.buildWireframe.geometry.computeBoundingBox();
 			// const bbox = new THREE.Box3();
@@ -901,7 +901,7 @@ export default class Player extends THREE.Object3D {
 				for (const buildSnapPoint of this.buildSnapPoints) {
 					const d = snapPoint.distanceTo(buildSnapPoint);
 					// console.log(snapPoint, buildSnapPoint)
-					console.log(d)
+					// console.log(d)
 					if (d < minSnapDistance) {
 						minSnapDistance = d;
 						snapDelta = snapPoint.sub(buildSnapPoint);
