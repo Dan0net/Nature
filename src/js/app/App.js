@@ -2,6 +2,7 @@ import ModelLoader from '../modelloader/ModelLoader';
 import Player from '../player/PlayerController';
 import UIController from '../ui/UIController';
 import TerrainController from '../terrain/TerrainController';
+import UserController from '../ui/UserController';
 
 
 
@@ -32,6 +33,9 @@ export default class App {
 		// console.log(gl.getSupportedExtensions());
 
 		this.uiController = new UIController();
+		this.userController = new UserController();
+		this.userController.init();
+		
 		this.terrainController;
 
 		this.player = new Player();

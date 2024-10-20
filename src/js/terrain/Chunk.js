@@ -35,9 +35,7 @@ export default class Chunk extends VolumetricChunk {
 
 
 	generateMeshData() {
-
 		return new Promise( resolve =>{
-
 			this.terrain.meshWorkerBank.work(
 				{
 					grid: this.useTemporaryGrid ? this.gridTemp : this.grid,
@@ -51,7 +49,6 @@ export default class Chunk extends VolumetricChunk {
 					generateSun: this.generateSun,
 				},
 				async ( { data } ) => {
-
 					this.lightNeedsUpdating = false;
 					this.generateMesh( data );
 
@@ -67,6 +64,40 @@ export default class Chunk extends VolumetricChunk {
 	generateGrid() {
 
 		return new Promise( resolve => {
+			const f = async () => {
+				try {
+					
+					const response = await fetch(`http://localhost:3000/getChunk`,
+					// const response = await fetch(`https://worldify-api.onrender.com/getChunk`,
+						{
+							method: 'POST', // Specify the request method
+							headers: {
+								'Content-Type': 'application/json' // Set content type to JSON
+							},
+							body: JSON.stringify({
+								x: this.offset.x,
+								y: this.offset.y,
+								z: this.offset.z,
+							})
+						}
+					); // API request
+					if (!response.ok) {
+						throw new Error('Network response was not ok');
+					}
+					const data = await response.json(); // Parse JSON response
+					console.log(this.chunkKey, data);
+
+					this.grid = new Float32Array(data.grid);
+					this.gridTemp = new Float32Array(data.grid);
+					// console.log(this.grid);
+					resolve();
+				} catch (error) {
+					console.error(this.chunkKey, 'Error fetching data:', error);
+
+				}
+			}
+
+			f();
 
 			this.terrain.gridWorkerBank.work(
 				{

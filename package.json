@@ -4,7 +4,7 @@
     "description": "volumetric-terrain nature",
     "scripts": {
         "vite": "vite --port=5500",
-        "build": "vite build",
+        "build": "vite build --mode production",
         "preview": "vite preview"
     },
     "repository": {

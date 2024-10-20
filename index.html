@@ -38,6 +38,13 @@
                 <button id='continue-button' class="hidden">continue</button>
                 <button id='start-button'>start</button>
                 <button id='settings-button'>options</button>
+                <form id="auth-form">
+                    <input type="email" id="email" placeholder="Email" autocomplete="email" required><br>
+                    <input type="password" id="password" placeholder="Password" autocomplete="current-password" required><br>
+                    <button type="submit" id="login" name="login">Login</button>
+                    <button type="submit" id="register" name="register">Register</button>
+                    <button type="submit" id="logout" name="logout" hidden formnovalidate>Logout</button>
+                </form>
                 <button id="downloadButton">Download Texture GZipped File</button>
             </div>
         </div>

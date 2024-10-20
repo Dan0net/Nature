@@ -15,7 +15,7 @@ export default class BuildSnapMarker extends THREE.Object3D {
 
         for(const snap of snaps ) {
             const sphere = this.generateSnapMarker(snap[0], snap[1], snap[2]);
-            console.log(snap, sphere)
+            // console.log(snap, sphere)
             this.add( sphere );
             this.markers.push(sphere);
         }
