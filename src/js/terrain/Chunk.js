@@ -2,6 +2,7 @@ import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from '../../
 import VolumetricChunk from '../../libraries/volumetric-terrain/VolumetricChunk';
 import { MeshSurfaceSampler } from 'three/examples/jsm/math/MeshSurfaceSampler';
 import BuildPresets from '../player/BuildPresets';
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default class Chunk extends VolumetricChunk {
 
@@ -67,7 +68,7 @@ export default class Chunk extends VolumetricChunk {
 			const f = async () => {
 				try {
 					
-					const response = await fetch(`http://localhost:3000/getChunk`,
+					const response = await fetch(`${apiUrl}/chunks/`,
 					// const response = await fetch(`https://worldify-api.onrender.com/getChunk`,
 						{
 							method: 'POST', // Specify the request method
@@ -97,7 +98,7 @@ export default class Chunk extends VolumetricChunk {
 				}
 			}
 
-			f();
+			// f();
 
 			this.terrain.gridWorkerBank.work(
 				{

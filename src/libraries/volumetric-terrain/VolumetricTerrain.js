@@ -2,6 +2,7 @@ import VolumetricChunk from './VolumetricChunk';
 import WorkerBank from '../workerbank/WorkerBank';
 import * as THREE from 'three';
 const CHUNK_OVERLAP = 2;
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export default class VolumetricTerrain extends THREE.Object3D {
 
