@@ -4,6 +4,7 @@ import UIController from '../ui/UIController';
 import TerrainController from '../terrain/TerrainController';
 import UserController from '../ui/UserController';
 
+const apiUrl = import.meta.env.VITE_API_URL;
 
 
 //  .oooo.   oo.ooooo.  oo.ooooo.
@@ -17,6 +18,21 @@ import UserController from '../ui/UserController';
 export default class App {
 
 	constructor() {
+
+		async function f(){
+
+			const response = await fetch(`${apiUrl}/chunks/0/0/9`, {
+				method: 'GET',
+				headers: {
+					// 'Accept': 'application/x-msgpack',
+					'Authorization': `Bearer ${localStorage.getItem('token')}`
+				}
+			});
+			console.log(response)
+			const j = await response.json();
+			console.log(j)
+		}
+		f();
 
 		this.loaded = false;
 		this.running = false;

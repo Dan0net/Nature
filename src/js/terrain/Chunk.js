@@ -62,44 +62,9 @@ export default class Chunk extends VolumetricChunk {
 
 	}
 
-	generateGrid() {
-
+	generateGrid(responseJson) {
+		console.log(responseJson)
 		return new Promise( resolve => {
-			const f = async () => {
-				try {
-					
-					const response = await fetch(`${apiUrl}/chunks/`,
-					// const response = await fetch(`https://worldify-api.onrender.com/getChunk`,
-						{
-							method: 'POST', // Specify the request method
-							headers: {
-								'Content-Type': 'application/json' // Set content type to JSON
-							},
-							body: JSON.stringify({
-								x: this.offset.x,
-								y: this.offset.y,
-								z: this.offset.z,
-							})
-						}
-					); // API request
-					if (!response.ok) {
-						throw new Error('Network response was not ok');
-					}
-					const data = await response.json(); // Parse JSON response
-					console.log(this.chunkKey, data);
-
-					this.grid = new Float32Array(data.grid);
-					this.gridTemp = new Float32Array(data.grid);
-					// console.log(this.grid);
-					resolve();
-				} catch (error) {
-					console.error(this.chunkKey, 'Error fetching data:', error);
-
-				}
-			}
-
-			// f();
-
 			this.terrain.gridWorkerBank.work(
 				{
 					offset: this.offset,
@@ -107,11 +72,19 @@ export default class Chunk extends VolumetricChunk {
 					terrainScale: this.terrain.terrainScale
 				},
 				async ( { data } ) => {
+					console.log(responseJson)
 
-					this.grid = data.grid;
-					this.gridTemp = new Float32Array(data.grid);
-					this.terrainHeights = data.terrainHeights;
+					if (responseJson && responseJson.grid) {
+						this.grid = new Float32Array(responseJson.grid);
+						this.gridTemp = new Float32Array(responseJson.grid);
+						this.terrainHeights = new Float32Array(responseJson.heights);
+					} else {
+						this.grid = data.grid;
+						this.gridTemp = new Float32Array(data.grid);
+						this.terrainHeights = data.terrainHeights;
+					}
 
+					console.log(this.terrainHeights)
 					// this.adjust( 
 					// 	this.position.clone().add(
 					// 		new THREE.Vector3(5,5,5)

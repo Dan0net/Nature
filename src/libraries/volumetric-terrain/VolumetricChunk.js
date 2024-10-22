@@ -1,6 +1,7 @@
 import BuildPresets from '../../js/player/BuildPresets';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from '../../libraries/raycast-bvh/RaycastBVH';
 import * as THREE from 'three';
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const CHUNK_OVERLAP = 2;
 
@@ -55,17 +56,14 @@ export default class VolumetricChunk {
 		// this.terrain.add(this.debugWireframe);
 
 		//initialize the grid
-		this.generateGrid()
-			.then( () => {
-
-				this.generateMeshData().then( ()=>{
-
-					callback( this );
-
-				} );
-
-			} );
-
+		
+		this.fetchGrid().then((grid) => 
+			this.generateGrid(grid).then( () => 
+				this.generateMeshData().then( ()=>
+					callback( this )
+				)
+			)
+		);
 	}
 
 	getTerrainHeight( x, z ) {
@@ -112,6 +110,41 @@ export default class VolumetricChunk {
 
 	}
 
+														
+	//    ad88                                 88           
+	//   d8"                 ,d                88           
+	//   88                  88                88           
+	// MM88MMM  ,adPPYba,  MM88MMM  ,adPPYba,  88,dPPYba,   
+	//   88    a8P_____88    88    a8"     ""  88P'    "8a  
+	//   88    8PP"""""""    88    8b          88       88  
+	//   88    "8b,   ,aa    88,   "8a,   ,aa  88       88  
+	//   88     `"Ybbd8"'    "Y888  `"Ybbd8"'  88       88  
+														
+														
+											
+	//                          88           88  
+	//                          ""           88  
+	//                                       88  
+	//  ,adPPYb,d8  8b,dPPYba,  88   ,adPPYb,88  
+	// a8"    `Y88  88P'   "Y8  88  a8"    `Y88  
+	// 8b       88  88          88  8b       88  
+	// "8a,   ,d88  88          88  "8a,   ,d88  
+	//  `"YbbdP"Y8  88          88   `"8bbdP"Y8  
+	//  aa,    ,88                               
+	//   "Y8bbdP"                                
+
+
+	async fetchGrid() {
+		const response = await fetch(`${apiUrl}/chunks/${this.offset.x}/${this.offset.y}/${this.offset.z}`, {
+			method: 'GET',
+			headers: {
+				// 'Accept': 'application/x-msgpack',
+				'Authorization': `Bearer ${localStorage.getItem('token')}`
+			}
+		})
+		return response.json();
+	}
+
 	//  o8o               o8o      .
 	//  `"'               `"'    .o8
 	// oooo  ooo. .oo.   oooo  .o888oo
@@ -130,7 +163,8 @@ export default class VolumetricChunk {
 	// "Y88888P'
 
 
-	generateGrid() {
+	generateGrid(responseJson) {
+		console.log(responseJson)
 
 		return new Promise( resolve => {
 
@@ -141,9 +175,16 @@ export default class VolumetricChunk {
 					terrainScale: this.terrain.terrainScale
 				},
 				async ( { data } ) => {
+					console.log(responseJson)
 
-					this.grid = data.grid;
-					this.gridTemp = new Float32Array(data.grid);
+					if (responseJson && responseJson.grid) {
+						this.grid = data.grid;
+						this.gridTemp = new Float32Array(data.grid);
+					} else {
+						this.grid = data.grid;
+						this.gridTemp = new Float32Array(data.grid);
+					}
+
 					this.terrainHeights = data.terrainHeights;
 
 					resolve();

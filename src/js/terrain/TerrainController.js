@@ -14,10 +14,6 @@ import Pedestal from '../instanceLods/pedestal/Pedestal';
 import BerryBush from '../instanceLods/berry-bush/BerryBush';
 import Light from '../instanceLods/light/Light';
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
-import { pack, unpack } from 'msgpackr';
-
 // eslint-disable-next-line no-unused-vars
 export default class TerrainController extends VolumetricTerrain {
 
@@ -121,19 +117,7 @@ export default class TerrainController extends VolumetricTerrain {
 	//   888   888   888   888    888
 	//   888   888   888   888    888 .
 	//  o888o o888o o888o o888o   "888"
-	async init( viewDistance, saveProgress ) {
-
-		
-		const response = await fetch(`${apiUrl}/chunks/0/0/6`, {
-            method: 'GET',
-            headers: {
-				// 'Accept': 'application/x-msgpack',
-				'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-		console.log(response)
-		const j = await response.json();
-		console.log(j)
+	init( viewDistance, saveProgress ) {
 
 		if ( viewDistance ) {
 
@@ -176,7 +160,8 @@ export default class TerrainController extends VolumetricTerrain {
 
 			};
 
-			const gridAmount = this.viewDistance * 2 + 1;
+			// const gridAmount = this.viewDistance * 2 + 1;
+			const gridAmount = 1;
 			grid.style.gridTemplateRows = `repeat(${gridAmount},calc(100% / ${gridAmount}))`;
 			grid.style.gridTemplateColumns = `repeat(${gridAmount},calc(100% / ${gridAmount}))`;
 			grid.innerHTML = '';
